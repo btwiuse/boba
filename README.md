@@ -20,7 +20,7 @@
  <li>Wrap any local CLI program in a browser terminal with the `boba` command.</li>
 </ul>
     </td>
-    <td ><img src="./etc/booba.png" alt="booba mascot" width="256"></td>
+    <td ><img src="./etc/boba.png" alt="booba mascot" width="256"></td>
     </tr>
   </table>
 </p>
