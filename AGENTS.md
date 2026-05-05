@@ -1,6 +1,6 @@
 # Agents
 
-This document defines the agents and personas associated with the `booba` project.
+This document defines the agents and personas associated with the `boba` project.
 
 ## Project Roles
 
@@ -30,7 +30,7 @@ We do **not** vendor or directly include the upstream source. Instead, we
 took the ghostty-web build artifacts (WASM + JS + types) and adapted the
 demo's terminal initialization patterns into our own TypeScript wrapper.
 The transport protocol (Sip-compatible binary framing, WebTransport, etc.)
-is entirely booba's own — the upstream demo uses raw strings over WebSocket.
+is entirely boba's own — the upstream demo uses raw strings over WebSocket.
 
 As ghostty-web evolves (new Terminal API, bug fixes, renderer improvements),
 we should periodically update our build artifacts and adjust our wrapper
@@ -58,7 +58,7 @@ Update by replacing with newer builds from ghostty-web (`bun run build`).
 #### Terminal initialization pattern (adapted from demo)
 
 The upstream demo (`demo/index.html`, `demo/bin/demo.js`) shows the
-canonical way to initialize and wire ghostty-web. Our `ts/booba.ts`
+canonical way to initialize and wire ghostty-web. Our `ts/boba.ts`
 follows this pattern:
 
 ```
@@ -68,9 +68,9 @@ init() → new Terminal(opts) → loadAddon(FitAddon) → open(container)
   → term.onResize() for dimension changes
 ```
 
-### What is booba's own (not from upstream)
+### What is boba's own (not from upstream)
 
-These files implement booba-specific functionality with no upstream equivalent:
+These files implement boba-specific functionality with no upstream equivalent:
 
 | File | What it does |
 |------|-------------|
@@ -78,7 +78,7 @@ These files implement booba-specific functionality with no upstream equivalent:
 | `ts/websocket_adapter.ts` | WebSocket adapter with binary Sip framing, exponential backoff reconnection, ping/pong |
 | `ts/webtransport_adapter.ts` | WebTransport/QUIC adapter with length-prefixed framing and cert pinning |
 | `ts/auto_adapter.ts` | Auto-detection: tries WebTransport first, falls back to WebSocket |
-| `ts/adapter.ts` | `BoobaAdapter` interface + WASM polling adapter |
+| `ts/adapter.ts` | `BobaAdapter` interface + WASM polling adapter |
 | `ts/clipboard.ts` | OSC 52 clipboard sequence scanner |
 | `ts/types.ts` | Booba-specific type re-exports and definitions |
 | `serve/protocol.go` | Go-side Sip protocol encode/decode |
@@ -92,14 +92,14 @@ The upstream demo uses raw UTF-8 strings for I/O and JSON
 When upstream ghostty-web updates, check:
 
 1. **Terminal constructor options** — New options in `ITerminalOptions`
-   (upstream `lib/interfaces.ts`) that `BoobaTerminalOptions` should mirror.
-   Currently booba surfaces: `fontSize`, `fontFamily`, `cols`, `rows`,
+   (upstream `lib/interfaces.ts`) that `BobaTerminalOptions` should mirror.
+   Currently boba surfaces: `fontSize`, `fontFamily`, `cols`, `rows`,
    `cursorBlink`, `cursorStyle`, `scrollback`, `allowTransparency`,
    `convertEol`, `disableStdin`, `smoothScrollDuration`, `theme`, plus
-   booba-specific `allowOSC52`. Watch for additions upstream.
+   boba-specific `allowOSC52`. Watch for additions upstream.
 
 2. **Terminal API surface** — New public methods on `Terminal` (upstream
-   `lib/terminal.ts`) that `BoobaTerminal` should proxy. Currently booba
+   `lib/terminal.ts`) that `BobaTerminal` should proxy. Currently boba
    covers: write, writeln, paste, input, focus, blur, clear, reset,
    selection, scrolling, link providers, mode queries, custom event handlers.
 
@@ -114,5 +114,5 @@ When upstream ghostty-web updates, check:
    `index.d.ts` change, replace the files in `serve/static/ghostty-web/`
    and verify our TypeScript still compiles against the new types.
 
-6. **Mobile viewport handling** — Both booba and upstream use a
+6. **Mobile viewport handling** — Both boba and upstream use a
    `visualViewport` handler for mobile keyboards. Keep in sync.

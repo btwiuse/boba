@@ -58,7 +58,7 @@ func RunEscapePrompt(r io.Reader, w io.Writer, info PromptInfo) (EscapeAction, e
 	sc := bufio.NewScanner(r)
 	sc.Split(scanLinesCROrLF)
 	for {
-		if _, err := fmt.Fprint(w, "booba-sip-client> "); err != nil {
+		if _, err := fmt.Fprint(w, "boba-sip-client> "); err != nil {
 			return ActionDisconnect, err
 		}
 		if !sc.Scan() {

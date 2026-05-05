@@ -1,11 +1,11 @@
-# Design: `@nimblemarkets/booba` npm Package
+# Design: `@btwiuse/boba` npm Package
 
 **Date:** 2026-04-15
 **Status:** Approved
 
 ## Goal
 
-Publish booba's TypeScript terminal wrapper as `@nimblemarkets/booba` on
+Publish boba's TypeScript terminal wrapper as `@btwiuse/boba` on
 GitHub Packages so consumers can `npm install` it instead of copying
 pre-built JS files. The Go `serve` package continues to embed compiled
 assets via `go:embed`.
@@ -17,14 +17,14 @@ assets via `go:embed`.
 - `ghostty-web` is a peer dependency — consumers provide it.
 - Published to GitHub Packages (not public npm). Consumers add a one-line
   `.npmrc` for the `@nimblemarkets` scope.
-- The existing `serve/static/booba/` embed path must keep working for
+- The existing `serve/static/boba/` embed path must keep working for
   the Go server.
 
 ## Architecture
 
 ### Import path change
 
-`ts/booba.ts` currently imports ghostty-web via a relative path that
+`ts/boba.ts` currently imports ghostty-web via a relative path that
 only works in the `serve/static/` layout:
 
 ```ts
@@ -80,7 +80,7 @@ No other TS files need changes — they only import from sibling `./` paths.
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./serve/static/booba",
+    "outDir": "./serve/static/boba",
     "paths": {
       "ghostty-web": ["./serve/static/ghostty-web/ghostty-web.js"]
     }
@@ -88,7 +88,7 @@ No other TS files need changes — they only import from sibling `./` paths.
 }
 ```
 
-- Outputs to `serve/static/booba/` for `go:embed`
+- Outputs to `serve/static/boba/` for `go:embed`
 - `paths` remaps the bare `ghostty-web` import to the relative location
   where `task build-serve-assets` places the ghostty-web distribution
 
@@ -96,17 +96,17 @@ No other TS files need changes — they only import from sibling `./` paths.
 
 ```json
 {
-  "name": "@nimblemarkets/booba",
+  "name": "@btwiuse/boba",
   "version": "0.1.0",
   "type": "module",
   "description": "Terminal wrapper for BubbleTea programs using ghostty-web",
-  "main": "dist/booba.js",
-  "module": "dist/booba.js",
-  "types": "dist/booba.d.ts",
+  "main": "dist/boba.js",
+  "module": "dist/boba.js",
+  "types": "dist/boba.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/booba.js",
-      "types": "./dist/booba.d.ts"
+      "import": "./dist/boba.js",
+      "types": "./dist/boba.d.ts"
     }
   },
   "files": ["dist"],
@@ -181,24 +181,24 @@ Add `dist/` to `.gitignore` — npm build output should not be committed.
 
 ## Example repo changes
 
-`go-booba-example` updates to consume the published package:
+`boba-example` updates to consume the published package:
 
 **`.npmrc`** (new file):
 ```
 @nimblemarkets:registry=https://npm.pkg.github.com
 ```
 
-**`package.json`** adds `@nimblemarkets/booba` as a dependency:
+**`package.json`** adds `@btwiuse/boba` as a dependency:
 ```json
 {
   "dependencies": {
-    "@nimblemarkets/booba": "^0.1.0",
+    "@btwiuse/boba": "^0.1.0",
     "ghostty-web": "^0.4.0-next.14.g6a1a50d"
   }
 }
 ```
 
-**`web/booba/`** is removed from the repo. The `pages.yml` workflow
+**`web/boba/`** is removed from the repo. The `pages.yml` workflow
 copies from `node_modules` instead:
 
 ```yaml
@@ -208,31 +208,31 @@ copies from `node_modules` instead:
     mkdir -p web/ghostty-web
     cp node_modules/ghostty-web/dist/ghostty-web.js web/ghostty-web/
     cp node_modules/ghostty-web/dist/ghostty-vt.wasm web/ghostty-web/
-    mkdir -p web/booba
-    cp node_modules/@nimblemarkets/booba/dist/*.js web/booba/
+    mkdir -p web/boba
+    cp node_modules/@btwiuse/boba/dist/*.js web/boba/
 ```
 
-**`web/index.html`** stays the same — imports from `./booba/booba.js`
+**`web/index.html`** stays the same — imports from `./boba/boba.js`
 which is populated at build time.
 
-## Files changed (booba repo)
+## Files changed (boba repo)
 
 | File | Change |
 |------|--------|
-| `ts/booba.ts` | Change ghostty-web import to bare package name |
+| `ts/boba.ts` | Change ghostty-web import to bare package name |
 | `tsconfig.json` | Change `outDir` to `dist` |
-| `tsconfig.embed.json` | New file — extends base, outputs to `serve/static/booba` with path remap |
+| `tsconfig.embed.json` | New file — extends base, outputs to `serve/static/boba` with path remap |
 | `package.json` | Add name, version, exports, peerDependencies, scripts, publishConfig |
 | `Taskfile.yml` | `build-assets` uses `tsconfig.embed.json`; new `build-npm` task |
 | `.github/workflows/release.yml` | New workflow for npm publishing on tags |
 | `.gitignore` | Add `dist/` |
 
-## Files changed (go-booba-example repo)
+## Files changed (boba-example repo)
 
 | File | Change |
 |------|--------|
 | `.npmrc` | New file — points `@nimblemarkets` scope at GitHub Packages |
-| `package.json` | Add `@nimblemarkets/booba` dependency |
-| `web/booba/` | Remove checked-in JS files |
-| `.github/workflows/pages.yml` | Copy booba from `node_modules` |
-| `.gitignore` | Add `web/booba/` |
+| `package.json` | Add `@btwiuse/boba` dependency |
+| `web/boba/` | Remove checked-in JS files |
+| `.github/workflows/pages.yml` | Copy boba from `node_modules` |
+| `.gitignore` | Add `web/boba/` |

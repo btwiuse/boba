@@ -1,15 +1,15 @@
-// booba-assets sets up a web/ directory with everything needed to host
+// boba-assets sets up a web/ directory with everything needed to host
 // a BubbleTea program compiled to WebAssembly.
 //
 // It copies:
 //   - wasm_exec.js from GOROOT (Go WASM runtime support)
-//   - booba/*.js from the go-booba module (terminal wrapper)
+//   - boba/*.js from the boba module (terminal wrapper)
 //   - ghostty-web/ghostty-web.js and ghostty-vt.wasm (terminal emulator)
 //   - index.html (an embedded starter template, unless one already exists)
 //
 // Usage:
 //
-//	go run github.com/NimbleMarkets/go-booba/cmd/booba-assets [--force] <output-dir>
+//	go run github.com/btwiuse/boba/cmd/boba-assets [--force] <output-dir>
 package main
 
 import (
@@ -28,13 +28,13 @@ import (
 //go:embed template/index.html
 var templateFS embed.FS
 
-const boobaModule = "github.com/NimbleMarkets/go-booba"
+const bobaModule = "github.com/btwiuse/boba"
 
 func main() {
 	force := pflag.BoolP("force", "f", false, "overwrite an existing index.html")
 	pflag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [--force] <output-dir>\n\n", os.Args[0])
-		fmt.Fprintln(os.Stderr, "Populates <output-dir> with wasm_exec.js, booba/, ghostty-web/,")
+		fmt.Fprintln(os.Stderr, "Populates <output-dir> with wasm_exec.js, boba/, ghostty-web/,")
 		fmt.Fprintln(os.Stderr, "and a starter index.html for hosting a BubbleTea WASM program.")
 		pflag.PrintDefaults()
 	}
@@ -45,7 +45,7 @@ func main() {
 		os.Exit(2)
 	}
 	if err := run(pflag.Arg(0), *force); err != nil {
-		fmt.Fprintf(os.Stderr, "booba-assets: %v\n", err)
+		fmt.Fprintf(os.Stderr, "boba-assets: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -55,9 +55,9 @@ func run(outDir string, force bool) error {
 		return fmt.Errorf("create output dir: %w", err)
 	}
 
-	boobaDir, err := findModuleDir(boobaModule)
+	bobaDir, err := findModuleDir(bobaModule)
 	if err != nil {
-		return fmt.Errorf("locate %s (run 'go mod download' first?): %w", boobaModule, err)
+		return fmt.Errorf("locate %s (run 'go mod download' first?): %w", bobaModule, err)
 	}
 
 	goroot, err := goEnv("GOROOT")
@@ -75,23 +75,23 @@ func run(outDir string, force bool) error {
 	}
 	fmt.Printf("  wasm_exec.js          → %s\n", filepath.Join(outDir, "wasm_exec.js"))
 
-	// booba/*.js (terminal wrapper)
-	boobaSrc := filepath.Join(boobaDir, "serve", "static", "booba")
-	boobaDst := filepath.Join(outDir, "booba")
-	if err := os.MkdirAll(boobaDst, 0o755); err != nil {
+	// boba/*.js (terminal wrapper)
+	bobaSrc := filepath.Join(bobaDir, "serve", "static", "boba")
+	bobaDst := filepath.Join(outDir, "boba")
+	if err := os.MkdirAll(bobaDst, 0o755); err != nil {
 		return err
 	}
-	n, err := copyJSFiles(boobaSrc, boobaDst)
+	n, err := copyJSFiles(bobaSrc, bobaDst)
 	if err != nil {
-		return fmt.Errorf("copy booba assets: %w", err)
+		return fmt.Errorf("copy boba assets: %w", err)
 	}
 	if n == 0 {
-		return fmt.Errorf("no .js files found in %s — module may be incomplete", boobaSrc)
+		return fmt.Errorf("no .js files found in %s — module may be incomplete", bobaSrc)
 	}
-	fmt.Printf("  booba/ (%d files)      → %s\n", n, boobaDst)
+	fmt.Printf("  boba/ (%d files)      → %s\n", n, bobaDst)
 
 	// ghostty-web (terminal emulator)
-	ghSrc := filepath.Join(boobaDir, "serve", "static", "ghostty-web")
+	ghSrc := filepath.Join(bobaDir, "serve", "static", "ghostty-web")
 	ghDst := filepath.Join(outDir, "ghostty-web")
 	if err := os.MkdirAll(ghDst, 0o755); err != nil {
 		return err

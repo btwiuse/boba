@@ -18,7 +18,7 @@
     <script src="wasm_exec.js"></script>
 
     <script type="module">
-        import { BoobaTerminal } from './booba/booba.js';
+        import { BobaTerminal } from './boba/boba.js';
 
         async function main() {
             // Load and start the Go WASM binary
@@ -29,12 +29,12 @@
             go.run(result.instance);
 
             // Initialize the terminal emulator
-            const booba = new BoobaTerminal('terminal-container');
-            await booba.init();
+            const boba = new BobaTerminal('terminal-container');
+            await boba.init();
 
             // Connect via WASM adapter (polls bubbletea_read at ~60fps)
-            booba.connectWasm();
-            booba.focus();
+            boba.connectWasm();
+            boba.focus();
         }
 
         main().catch(console.error);

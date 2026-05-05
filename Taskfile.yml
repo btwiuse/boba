@@ -1,4 +1,4 @@
-# go-booba - Copyright (c) 2026 Neomantra Corp.
+# boba - Copyright (c) 2026 Neomantra Corp.
 
 version: '3'
 
@@ -49,7 +49,7 @@ tasks:
       - build-cmds
 
   test:
-    desc: 'Test go-booba'
+    desc: 'Test boba'
     deps:
       - go-test
 
@@ -94,7 +94,7 @@ tasks:
       - tsconfig.embed.json
       - ts/*.ts
     generates:
-      - serve/static/booba/*.js
+      - serve/static/boba/*.js
 
   build-npm:
     desc: 'Build npm package to dist/'
@@ -118,7 +118,7 @@ tasks:
   build-ghostty-web:
     desc: 'Build wasm + lib inside third_party/ghostty-web. Uses nix locally (pinned zig 0.15.2); in CI assumes zig + bun are already on PATH.'
     # npm-deps must finish before bun install runs in the submodule. They
-    # both write into node_modules — booba's npm ci reaches through the
+    # both write into node_modules — boba's npm ci reaches through the
     # `file:./third_party/ghostty-web` symlink and clobbers bun-installed
     # .bin entries (e.g. vite) mid-build when run in parallel.
     deps: [init-submodules, npm-deps]
@@ -148,10 +148,10 @@ tasks:
       - mkdir -p serve/static/ghostty-web
       - cp -r third_party/ghostty-web/dist/* serve/static/ghostty-web/
     sources:
-      - serve/static/booba/*.js
+      - serve/static/boba/*.js
       - third_party/ghostty-web/dist/*
     generates:
-      - serve/static/booba/*.js
+      - serve/static/boba/*.js
       - serve/static/ghostty-web/ghostty-web.js
       - serve/static/ghostty-web/ghostty-vt.wasm
 
@@ -165,7 +165,7 @@ tasks:
     desc: 'Cleans compiled assets'
     cmds:
       - rm -rf dist
-      - rm -rf serve/static/booba
+      - rm -rf serve/static/boba
       - rm -rf serve/static/ghostty-web
 
 ###############################################################################
@@ -174,91 +174,91 @@ tasks:
   build-cmds:
     desc: 'Build all commands'
     deps:
-      - build-cmd-booba
-      - build-cmd-booba-assets
-      - build-cmd-booba-sip-client
-      - build-cmd-booba-wasm-build
-      - build-cmd-booba-view-example-native
-      - build-cmd-booba-view-example-wasm
+      - build-cmd-boba
+      - build-cmd-boba-assets
+      - build-cmd-boba-sip-client
+      - build-cmd-boba-wasm-build
+      - build-cmd-boba-view-example-native
+      - build-cmd-boba-view-example-wasm
 
-  build-cmd-booba-assets:
-    desc: 'Build booba-assets command'
+  build-cmd-boba-assets:
+    desc: 'Build boba-assets command'
     deps: [go-tidy]
     cmds:
-      - go build -o bin/booba-assets ./cmd/booba-assets/
+      - go build -o bin/boba-assets ./cmd/boba-assets/
     sources:
-      - cmd/booba-assets/**/*
+      - cmd/boba-assets/**/*
     generates:
-      - bin/booba-assets
+      - bin/boba-assets
 
-  build-cmd-booba-wasm-build:
-    desc: 'Build booba-wasm-build command'
+  build-cmd-boba-wasm-build:
+    desc: 'Build boba-wasm-build command'
     deps: [go-tidy]
     cmds:
-      - go build -o bin/booba-wasm-build ./cmd/booba-wasm-build/
+      - go build -o bin/boba-wasm-build ./cmd/boba-wasm-build/
     sources:
-      - cmd/booba-wasm-build/**/*
+      - cmd/boba-wasm-build/**/*
     generates:
-      - bin/booba-wasm-build
+      - bin/boba-wasm-build
 
-  build-cmd-booba:
-    desc: 'Build booba command'
+  build-cmd-boba:
+    desc: 'Build boba command'
     deps: [go-tidy, build-serve-assets]
     cmds:
-      - go build -o bin/booba ./cmd/booba/
+      - go build -o bin/boba ./cmd/boba/
     sources:
-      - cmd/booba/*.go
+      - cmd/boba/*.go
       - internal/cli/*.go
       - serve/*.go
       - serve/static/**/*
     generates:
-      - bin/booba
+      - bin/boba
 
-  build-cmd-booba-sip-client:
-    desc: 'Build booba-sip-client command'
+  build-cmd-boba-sip-client:
+    desc: 'Build boba-sip-client command'
     deps: [go-tidy]
     cmds:
-      - go build -o bin/booba-sip-client ./cmd/booba-sip-client/
+      - go build -o bin/boba-sip-client ./cmd/boba-sip-client/
     sources:
-      - cmd/booba-sip-client/*.go
+      - cmd/boba-sip-client/*.go
       - internal/sipclient/*.go
       - sip/*.go
     generates:
-      - bin/booba-sip-client
+      - bin/boba-sip-client
 
-  build-cmd-booba-view-example-native:
-    desc: 'Build booba-view-example command'
+  build-cmd-boba-view-example-native:
+    desc: 'Build boba-view-example command'
     deps: [go-tidy, build-serve-assets]
     cmds:
-      - go build -o bin/booba-view-example ./cmd/booba-view-example/
+      - go build -o bin/boba-view-example ./cmd/boba-view-example/
     sources:
-      - cmd/booba-view-example/*.go
+      - cmd/boba-view-example/*.go
       - internal/cli/*.go
       - serve/*.go
       - serve/static/**/*
     generates:
-      - bin/booba-view-example
+      - bin/boba-view-example
 
-  build-cmd-booba-view-example-wasm:
-    desc: 'Build booba-view-example command in WASM'
-    deps: [go-tidy, build-cmd-booba-wasm-build]
+  build-cmd-boba-view-example-wasm:
+    desc: 'Build boba-view-example command in WASM'
+    deps: [go-tidy, build-cmd-boba-wasm-build]
     cmds:
-      - bin/booba-wasm-build -o bin/booba-view-example.wasm ./cmd/booba-view-example/
+      - bin/boba-wasm-build -o bin/boba-view-example.wasm ./cmd/boba-view-example/
     sources:
-      - cmd/booba-view-example/*.go
-      - cmd/booba-wasm-build/**/*
+      - cmd/boba-view-example/*.go
+      - cmd/boba-wasm-build/**/*
     generates:
-      - bin/booba-view-example.wasm
+      - bin/boba-view-example.wasm
 
   clean-cmds:
     desc: 'Cleans all commands'
     cmds:
-      - rm -f bin/booba
-      - rm -f bin/booba-assets
-      - rm -f bin/booba-sip-client
-      - rm -f bin/booba-wasm-build
-      - rm -f bin/booba-view-example
-      - rm -f bin/booba-view-example.wasm
+      - rm -f bin/boba
+      - rm -f bin/boba-assets
+      - rm -f bin/boba-sip-client
+      - rm -f bin/boba-wasm-build
+      - rm -f bin/boba-view-example
+      - rm -f bin/boba-view-example.wasm
 
 ###############################################################################
 # Documentation generation (via cobra's doc subpackage)
@@ -279,14 +279,14 @@ tasks:
 
   docs:man:build:
     desc: 'Generate man pages into docs/man/'
-    deps: [build-cmd-booba]
+    deps: [build-cmd-boba]
     cmds:
-      - ./bin/booba docs man -o docs/man
+      - ./bin/boba docs man -o docs/man
     sources:
-      - cmd/booba/*.go
+      - cmd/boba/*.go
       - internal/cli/*.go
     generates:
-      - docs/man/booba.1
+      - docs/man/boba.1
 
   docs:man:clean:
     desc: 'Remove generated man pages'
@@ -295,14 +295,14 @@ tasks:
 
   docs:md:build:
     desc: 'Generate markdown docs into docs/markdown/'
-    deps: [build-cmd-booba]
+    deps: [build-cmd-boba]
     cmds:
-      - ./bin/booba docs markdown -o docs/markdown
+      - ./bin/boba docs markdown -o docs/markdown
     sources:
-      - cmd/booba/*.go
+      - cmd/boba/*.go
       - internal/cli/*.go
     generates:
-      - docs/markdown/booba.md
+      - docs/markdown/boba.md
 
   docs:md:clean:
     desc: 'Remove generated markdown docs'
@@ -311,24 +311,24 @@ tasks:
 
   docs:completions:build:
     desc: 'Regenerate shell completion scripts into completions/'
-    deps: [build-cmd-booba]
+    deps: [build-cmd-boba]
     cmds:
       - mkdir -p completions
-      - ./bin/booba completion bash > completions/booba.bash
-      - ./bin/booba completion zsh > completions/booba.zsh
-      - ./bin/booba completion fish > completions/booba.fish
+      - ./bin/boba completion bash > completions/boba.bash
+      - ./bin/boba completion zsh > completions/boba.zsh
+      - ./bin/boba completion fish > completions/boba.fish
     sources:
-      - cmd/booba/*.go
+      - cmd/boba/*.go
       - internal/cli/*.go
     generates:
-      - completions/booba.bash
-      - completions/booba.zsh
-      - completions/booba.fish
+      - completions/boba.bash
+      - completions/boba.zsh
+      - completions/boba.fish
 
   docs:completions:clean:
     desc: 'Remove generated shell completion scripts'
     cmds:
-      - rm -f completions/booba.bash completions/booba.zsh completions/booba.fish
+      - rm -f completions/boba.bash completions/boba.zsh completions/boba.fish
 
 ###############################################################################
 # Release verification

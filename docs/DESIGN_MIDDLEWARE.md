@@ -2,18 +2,18 @@
 
 **Status:** Shipped in v0.3. The serve package now exposes ConnectMiddleware, SessionMiddleware, and Middleware (layer-3) with functional options on NewServer; LiftHTTPMiddleware adapts net/http middleware. See `docs/superpowers/specs/2026-04-16-v0.3-middleware-design.md` for the implementation spec and `docs/superpowers/plans/2026-04-16-v0.3-middleware-implementation.md` for the task-by-task plan that landed.
 
-**Audience:** booba maintainers and contributors planning the middleware story.
+**Audience:** boba maintainers and contributors planning the middleware story.
 
 ## Context
 
-booba's `serve` package already has a Wish-shaped handler API:
+boba's `serve` package already has a Wish-shaped handler API:
 
 - `serve.NewServer(cfg, ...Option) *Server`
 - `serve.Handler = func(Session) (tea.Model, []tea.ProgramOption)`
 - `serve.MakeOptions(sess) []tea.ProgramOption`
 - `serve.WithSessionFactory(factory)` (replaced `SetSessionFactory` in v0.3)
 
-This mirrors `charmbracelet/wish`'s `bubbletea.Handler` + `wish.WithMiddleware(...)` shape, and matches `Gaurav-Gosain/sip`'s public API. What's missing compared to Wish is **composable middleware**. Wish ships `activeterm`, `logging`, `recover`, `ratelimiter`, `accesscontrol`, `elapsed`, `comment`, composed via `wish.WithMiddleware(...)`. sip has the Wish-shaped handler without the middleware layer. booba today is in the same state as sip.
+This mirrors `charmbracelet/wish`'s `bubbletea.Handler` + `wish.WithMiddleware(...)` shape, and matches `Gaurav-Gosain/sip`'s public API. What's missing compared to Wish is **composable middleware**. Wish ships `activeterm`, `logging`, `recover`, `ratelimiter`, `accesscontrol`, `elapsed`, `comment`, composed via `wish.WithMiddleware(...)`. sip has the Wish-shaped handler without the middleware layer. boba today is in the same state as sip.
 
 This note argues that the right design is **three middleware layers, not one**, because HTTP, WebTransport, Sip, and VT each have different ideas of "what the middleware wraps" — and conflating them either excludes legitimate concerns or misleads users about what the net/http ecosystem can do for them.
 
@@ -21,13 +21,13 @@ This note argues that the right design is **three middleware layers, not one**, 
 
 It's tempting to point at `Server.HTTPHandler()` and say "wrap it in chi/gorilla/tollbooth". That works for the WebSocket handshake path but breaks down on several axes:
 
-1. **booba runs two listeners.** WebSocket rides the main TCP HTTP mux. WebTransport runs its own H3/UDP listener (`wtServer.ListenAndServe()` in `serve/server.go`). Middleware wrapping `HTTPHandler()` covers only the WS path; WT bypasses it entirely.
+1. **boba runs two listeners.** WebSocket rides the main TCP HTTP mux. WebTransport runs its own H3/UDP listener (`wtServer.ListenAndServe()` in `serve/server.go`). Middleware wrapping `HTTPHandler()` covers only the WS path; WT bypasses it entirely.
 2. **Request/response vs long-lived session.** Classic HTTP middleware assumes a response will be written. WS and WT connections stay open for the full session. `chi.Timeout`, `Compress`, response-rewriting loggers, body-buffering middleware break or deadlock on long-lived upgrades.
 3. **Post-handshake, there is no `http.Handler` for WT.** The session is a `webtransport.Session` with streams and datagrams. `func(http.Handler) http.Handler` has nothing to wrap.
 4. **Metric semantics are wrong.** `promhttp.InstrumentHandlerDuration` on a WT CONNECT reports sub-second — not the session duration.
 5. **QUIC concepts have no HTTP vocabulary.** Per-stream flow control, datagrams, session-scoped limits have no middleware equivalent in the net/http world.
 
-The honest claim is that the net/http ecosystem is reusable **at the handshake only**, and only if booba provides a transport-neutral hook that runs on both the WS upgrade and the WT CONNECT. Then a thin adapter lifts `func(http.Handler) http.Handler` into that hook for both paths.
+The honest claim is that the net/http ecosystem is reusable **at the handshake only**, and only if boba provides a transport-neutral hook that runs on both the WS upgrade and the WT CONNECT. Then a thin adapter lifts `func(http.Handler) http.Handler` into that hook for both paths.
 
 ## The three layers
 
@@ -36,7 +36,7 @@ Each layer has a different natural object to wrap and a different audience.
 | Layer | Type | Wraps | Audience |
 |---|---|---|---|
 | 1. Handshake | `ConnectMiddleware` | `*http.Request` (both WS upgrade and WT CONNECT) | Standard HTTP concerns: auth, rate-limit-by-IP, origin, access logging, request ID, tracing |
-| 2. Session I/O | `SessionMiddleware` | `Session` | **Booba/Sip/VT-specific concerns** — this is the distinctive layer |
+| 2. Session I/O | `SessionMiddleware` | `Session` | **Boba/Sip/VT-specific concerns** — this is the distinctive layer |
 | 3. Handler | `Middleware` | `Handler` | App/session-lifecycle: recover around `tea.Program`, session-duration logging, activity timeouts |
 
 ### Layer 1 — Handshake (`ConnectMiddleware`)
@@ -74,11 +74,11 @@ type SessionMiddleware func(Session) Session
 
 Installed alongside or replacing `SetSessionFactory`. This is the hook for behaviors that operate on the Sip byte stream or the VT semantics inside it — concerns that no other Go middleware ecosystem addresses, because no one else parses terminal protocols over WS/WT.
 
-**This is booba's distinctive contribution.** It is the reason booba is more than "sip + WASM".
+**This is boba's distinctive contribution.** It is the reason boba is more than "sip + WASM".
 
 Candidates for built-in middleware at this layer:
 
-- **`osc52gate`** — scan outbound VT stream for OSC 52 (clipboard write) escapes. Modes: `allow`, `deny`, `audit` (log + forward), `prompt` (rewrite into no-op, emit a booba-protocol event). Multi-tenant terminal-as-a-service will want this.
+- **`osc52gate`** — scan outbound VT stream for OSC 52 (clipboard write) escapes. Modes: `allow`, `deny`, `audit` (log + forward), `prompt` (rewrite into no-op, emit a boba-protocol event). Multi-tenant terminal-as-a-service will want this.
 - **`activeterm`** — browser-analog of wish's `activeterm`. Drop sessions that haven't reported a valid initial resize within N seconds. Catches probe clients and broken handshakes.
 - **`idletimeout`** — disconnect after N seconds of no inbound Sip bytes. Resource hygiene on public endpoints.
 - **`sipmetrics`** — Prometheus counters per Sip message type (bytes in/out, count, error rate), session-duration histogram, concurrent-session gauge. Provides the observability that generic HTTP metrics cannot — HTTP middleware reports CONNECT duration, not session duration. Ship in a subpackage (`serve/metrics` or `serve/sipmetrics`) so the main module doesn't force a `prometheus/client_golang` dep.
@@ -108,18 +108,18 @@ App-level auth/authz typically lives here (not at layer 1) because it needs `Ses
 
 ## Sequencing
 
-- **v0.2** (shipped): `booba.Run`, `Handler` aligned to `func(Session) (tea.Model, []tea.ProgramOption)` to match Wish/sip, `MakeTeaOptions` → `MakeOptions`, README quickstart. No middleware yet.
+- **v0.2** (shipped): `boba.Run`, `Handler` aligned to `func(Session) (tea.Model, []tea.ProgramOption)` to match Wish/sip, `MakeTeaOptions` → `MakeOptions`, README quickstart. No middleware yet.
 - **v0.3** (shipped): three-layer scaffolding. `ConnectMiddleware` + `LiftHTTPMiddleware`, `SessionMiddleware`, layer-3 `Middleware`. Functional options on `NewServer`: `WithConnectMiddleware`, `WithSessionMiddleware`, `WithMiddleware`, `WithSessionFactory`. Built-in basic-auth and connection-limit migrated to auto-installed `ConnectMiddleware`. `ProgramHandler` / `ServeWithProgram` removed. Config knobs `MaxPasteBytes` (1 MiB), `ResizeThrottle` (16ms), `MaxWindowDims` (4096×4096) with defaults on, plus `ConfigFromContext(ctx)` so middleware can read them. `Identity` interface + `WithIdentity` / `IdentityFromContext` for layer-1 → layers 2/3 propagation.
-- **v0.4** (shipped): built-in middleware. Subpackages `serve/middleware/osc52gate` (allow/deny/audit OSC 52 clipboard-write filter), `serve/middleware/recover` (panic recovery for handler construction), `serve/middleware/logging` (slog-based session lifecycle logger). Internal `idleTimeoutMiddleware` auto-installed from `cfg.IdleTimeout` (consolidates the prior `attachIdleTimeout` mechanism). `serve/sipmetrics` subpackage for Prometheus session metrics (isolates the `prometheus/client_golang` dep). New `Config.InitialResizeTimeout` knob caps pre-session read waits. `activeterm` was dropped — booba already enforces dimension validity before session creation, making Wish's activeterm shape a no-op here.
+- **v0.4** (shipped): built-in middleware. Subpackages `serve/middleware/osc52gate` (allow/deny/audit OSC 52 clipboard-write filter), `serve/middleware/recover` (panic recovery for handler construction), `serve/middleware/logging` (slog-based session lifecycle logger). Internal `idleTimeoutMiddleware` auto-installed from `cfg.IdleTimeout` (consolidates the prior `attachIdleTimeout` mechanism). `serve/sipmetrics` subpackage for Prometheus session metrics (isolates the `prometheus/client_golang` dep). New `Config.InitialResizeTimeout` knob caps pre-session read waits. `activeterm` was dropped — boba already enforces dimension validity before session creation, making Wish's activeterm shape a no-op here.
 
-## The claim booba can honestly make once shipped
+## The claim boba can honestly make once shipped
 
-> booba is the only Go library that gives you:
+> boba is the only Go library that gives you:
 > - **Wish-style handler ergonomics** for BubbleTea (layer 3)
 > - **net/http middleware ecosystem reuse** via a transport-neutral handshake hook that works on both WebSocket and WebTransport (layer 1)
 > - **VT/Sip-aware protocol middleware** for clipboard, paste, resize, and observability concerns that only exist when a terminal is on the other end of a browser connection (layer 2)
 
-Layer 2 is the one no other ecosystem has. It is what justifies go-booba as more than "sip with WASM embedding".
+Layer 2 is the one no other ecosystem has. It is what justifies boba as more than "sip with WASM embedding".
 
 ## Open questions
 

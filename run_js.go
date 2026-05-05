@@ -1,11 +1,11 @@
 //go:build js && wasm
 
-package booba
+package boba
 
 import (
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/NimbleMarkets/go-booba/wasm"
+	"github.com/btwiuse/boba/wasm"
 )
 
 // Program wraps a BubbleTea program for the browser.

@@ -1,14 +1,14 @@
 /**
  * Auto-detecting adapter that tries WebTransport first, then falls back to WebSocket.
  */
-import { BoobaAdapter, BoobaConnectionState } from './adapter.js';
-import { BoobaProtocolAdapter, type WebSocketAdapterCallbacks } from './websocket_adapter.js';
-import { BoobaWebTransportAdapter } from './webtransport_adapter.js';
+import { BobaAdapter, BobaConnectionState } from './adapter.js';
+import { BobaProtocolAdapter, type WebSocketAdapterCallbacks } from './websocket_adapter.js';
+import { BobaWebTransportAdapter } from './webtransport_adapter.js';
 
-export class BoobaAutoAdapter implements BoobaAdapter {
-    private adapter: BoobaAdapter | null = null;
+export class BobaAutoAdapter implements BobaAdapter {
+    private adapter: BobaAdapter | null = null;
     private onDataCallback: ((data: string | Uint8Array) => void) | null = null;
-    private onStateChangeCallback: ((state: BoobaConnectionState, message: string) => void) | null = null;
+    private onStateChangeCallback: ((state: BobaConnectionState, message: string) => void) | null = null;
 
     constructor(
         private wsUrl: string,
@@ -17,21 +17,21 @@ export class BoobaAutoAdapter implements BoobaAdapter {
         private callbacks: WebSocketAdapterCallbacks = {},
     ) {}
 
-    boobaRead(): string | Uint8Array | null {
-        return this.adapter?.boobaRead() ?? null;
+    bobaRead(): string | Uint8Array | null {
+        return this.adapter?.bobaRead() ?? null;
     }
 
-    boobaWrite(data: string | Uint8Array): void {
-        this.adapter?.boobaWrite(data);
+    bobaWrite(data: string | Uint8Array): void {
+        this.adapter?.bobaWrite(data);
     }
 
-    boobaResize(cols: number, rows: number, widthPx?: number, heightPx?: number): void {
-        this.adapter?.boobaResize(cols, rows, widthPx, heightPx);
+    bobaResize(cols: number, rows: number, widthPx?: number, heightPx?: number): void {
+        this.adapter?.bobaResize(cols, rows, widthPx, heightPx);
     }
 
     connect(
         onData: (data: string | Uint8Array) => void,
-        onStateChange: (state: BoobaConnectionState, message: string) => void
+        onStateChange: (state: BobaConnectionState, message: string) => void
     ): void {
         this.onDataCallback = onData;
         this.onStateChangeCallback = onStateChange;
@@ -45,7 +45,7 @@ export class BoobaAutoAdapter implements BoobaAdapter {
                 const resp = await fetch(this.certHashUrl);
                 if (resp.ok) {
                     const { hash } = await resp.json();
-                    const wt = new BoobaWebTransportAdapter(this.wtUrl, hash, this.callbacks);
+                    const wt = new BobaWebTransportAdapter(this.wtUrl, hash, this.callbacks);
                     this.adapter = wt;
                     await wt.connect(this.onDataCallback!, this.onStateChangeCallback!);
                     return; // WebTransport connected successfully
@@ -56,7 +56,7 @@ export class BoobaAutoAdapter implements BoobaAdapter {
         }
 
         // Fall back to WebSocket
-        const ws = new BoobaProtocolAdapter(this.wsUrl, this.callbacks);
+        const ws = new BobaProtocolAdapter(this.wsUrl, this.callbacks);
         this.adapter = ws;
         ws.connect(this.onDataCallback!, this.onStateChangeCallback!);
     }

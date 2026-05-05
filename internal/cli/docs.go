@@ -16,9 +16,9 @@ var (
 
 var docsCmd = &cobra.Command{
 	Use:    "docs",
-	Short:  "Generate documentation for booba",
+	Short:  "Generate documentation for boba",
 	Hidden: true,
-	Long: `Generate documentation for all booba commands.
+	Long: `Generate documentation for all boba commands.
 
 Subcommands:
   markdown  Generate plain markdown (default)
@@ -34,14 +34,14 @@ stable, reproducible files. Pass --enableAutoGenTag when publishing.`,
 var docsMarkdownCmd = &cobra.Command{
 	Use:   "markdown",
 	Short: "Generate markdown documentation",
-	Long:  `Generate plain markdown documentation for all booba commands.`,
+	Long:  `Generate plain markdown documentation for all boba commands.`,
 	RunE:  runDocsMarkdown,
 }
 
 var docsManCmd = &cobra.Command{
 	Use:   "man",
 	Short: "Generate man pages",
-	Long: `Generate man pages in roff format for all booba commands.
+	Long: `Generate man pages in roff format for all boba commands.
 
 Output is suitable for installation in /usr/share/man/man1 or
 /usr/local/share/man/man1.`,

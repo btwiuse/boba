@@ -3,7 +3,7 @@
 // Package sipmetrics provides a SessionMiddleware that records
 // Prometheus metrics for session lifecycle and byte throughput.
 //
-// Metrics (prefix defaults to "booba"):
+// Metrics (prefix defaults to "boba"):
 //   - <ns>_sessions_active                (gauge)
 //   - <ns>_session_duration_seconds       (histogram)
 //   - <ns>_session_bytes_received_total   (counter)
@@ -18,7 +18,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/NimbleMarkets/go-booba/serve"
+	"github.com/btwiuse/boba/serve"
 )
 
 type config struct {
@@ -35,7 +35,7 @@ func WithRegistry(r prometheus.Registerer) Option {
 	return func(c *config) { c.reg = r }
 }
 
-// WithNamespace sets the metric name prefix. Defaults to "booba".
+// WithNamespace sets the metric name prefix. Defaults to "boba".
 func WithNamespace(ns string) Option {
 	return func(c *config) { c.namespace = ns }
 }
@@ -49,7 +49,7 @@ type metrics struct {
 
 // New returns a SessionMiddleware that records Prometheus metrics.
 func New(opts ...Option) serve.SessionMiddleware {
-	cfg := &config{namespace: "booba"}
+	cfg := &config{namespace: "boba"}
 	for _, o := range opts {
 		o(cfg)
 	}

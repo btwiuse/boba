@@ -1,14 +1,14 @@
 # ghostty-web Full API Coverage Implementation Plan
 
-**Status:** Shipped. All 11 tasks landed in `ts/booba.ts`, `ts/types.ts`, and the example page at `serve/static/index.html`. Build output now lives at `serve/static/booba/` (the asset layout was reorganized after this plan was written; original references to `assets/index.html` and `assets/booba/` below have been updated).
+**Status:** Shipped. All 11 tasks landed in `ts/boba.ts`, `ts/types.ts`, and the example page at `serve/static/index.html`. Build output now lives at `serve/static/boba/` (the asset layout was reorganized after this plan was written; original references to `assets/index.html` and `assets/boba/` below have been updated).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Expose the full ghostty-web Terminal API surface through BoobaTerminal, adding selection, clipboard, scrollback, paste, focus, links, title, bell, cursor config, and expanded terminal options — so consumers of booba get access to everything ghostty-web offers without reaching past the abstraction.
+**Goal:** Expose the full ghostty-web Terminal API surface through BobaTerminal, adding selection, clipboard, scrollback, paste, focus, links, title, bell, cursor config, and expanded terminal options — so consumers of boba get access to everything ghostty-web offers without reaching past the abstraction.
 
-**Architecture:** BoobaTerminal remains the primary public class wrapping ghostty-web's Terminal. We expand `BoobaTerminalOptions` to cover all `ITerminalOptions` fields, add event forwarding for all Terminal events, add methods for selection/clipboard/scroll/focus/paste, and re-export relevant types. The adapter protocol (WebSocket `0x01`/`0x02` messages) is unchanged — mouse events and paste already flow as escape sequences through `onData`/`0x01`. No Go server changes needed.
+**Architecture:** BobaTerminal remains the primary public class wrapping ghostty-web's Terminal. We expand `BobaTerminalOptions` to cover all `ITerminalOptions` fields, add event forwarding for all Terminal events, add methods for selection/clipboard/scroll/focus/paste, and re-export relevant types. The adapter protocol (WebSocket `0x01`/`0x02` messages) is unchanged — mouse events and paste already flow as escape sequences through `onData`/`0x01`. No Go server changes needed.
 
-**Tech Stack:** TypeScript (ES2020), ghostty-web 0.4.0-next.14, compiled via `npx tsc` to `serve/static/booba/`
+**Tech Stack:** TypeScript (ES2020), ghostty-web 0.4.0-next.14, compiled via `npx tsc` to `serve/static/boba/`
 
 ---
 
@@ -16,30 +16,30 @@
 
 | File | Responsibility | Action |
 |------|---------------|--------|
-| `ts/booba.ts` | Main BoobaTerminal class — options, events, methods | Modify |
+| `ts/boba.ts` | Main BobaTerminal class — options, events, methods | Modify |
 | `ts/adapter.ts` | Adapter interface and implementations | No changes |
 | `ts/types.ts` | Re-exported types from ghostty-web | Create |
 | `serve/static/index.html` | Example page — update to demo new features | Modify |
 
 ---
 
-### Task 1: Expand BoobaTerminalOptions and Terminal construction
+### Task 1: Expand BobaTerminalOptions and Terminal construction
 
 **Files:**
-- Modify: `ts/booba.ts:1-45`
+- Modify: `ts/boba.ts:1-45`
 
-Currently `BoobaTerminalOptions` only has `fontSize`, `cols`, `rows`, `theme`, and a catch-all index signature. We need to explicitly surface all `ITerminalOptions` fields so consumers get type safety.
+Currently `BobaTerminalOptions` only has `fontSize`, `cols`, `rows`, `theme`, and a catch-all index signature. We need to explicitly surface all `ITerminalOptions` fields so consumers get type safety.
 
-- [x] **Step 1: Update BoobaTerminalOptions interface**
+- [x] **Step 1: Update BobaTerminalOptions interface**
 
-Replace the current `BoobaTerminalOptions` and constructor in `ts/booba.ts`:
+Replace the current `BobaTerminalOptions` and constructor in `ts/boba.ts`:
 
 ```typescript
 // @ts-ignore - Import will resolve at runtime in browser
 import { init, Terminal, FitAddon } from '../ghostty-web/ghostty-web.js';
-import { BoobaAdapter, BoobaConnectionState, BoobaWebSocketAdapter, BoobaWasmAdapter } from './adapter.js';
+import { BobaAdapter, BobaConnectionState, BoobaWebSocketAdapter, BobaWasmAdapter } from './adapter.js';
 
-export interface BoobaTerminalOptions {
+export interface BobaTerminalOptions {
     fontSize?: number;
     fontFamily?: string;
     cols?: number;
@@ -83,7 +83,7 @@ export interface BoobaTerminalOptions {
 Update the constructor to only set the minimal defaults (fontSize, cols, rows, theme background/foreground) and pass everything else through:
 
 ```typescript
-constructor(containerId: string, options: BoobaTerminalOptions = {}) {
+constructor(containerId: string, options: BobaTerminalOptions = {}) {
     this.container = document.getElementById(containerId);
     this.options = {
         fontSize: 14,
@@ -112,8 +112,8 @@ Expected: No errors
 - [x] **Step 4: Commit**
 
 ```bash
-git add ts/booba.ts
-git commit -m "feat: expand BoobaTerminalOptions to cover full ghostty-web ITerminalOptions"
+git add ts/boba.ts
+git commit -m "feat: expand BobaTerminalOptions to cover full ghostty-web ITerminalOptions"
 ```
 
 ---
@@ -121,13 +121,13 @@ git commit -m "feat: expand BoobaTerminalOptions to cover full ghostty-web ITerm
 ### Task 2: Add selection and clipboard methods
 
 **Files:**
-- Modify: `ts/booba.ts` (add methods to BoobaTerminal class)
+- Modify: `ts/boba.ts` (add methods to BobaTerminal class)
 
 ghostty-web's Terminal exposes `getSelection()`, `hasSelection()`, `clearSelection()`, `copySelection()`, `selectAll()`, `select()`, `selectLines()`, `getSelectionPosition()`. We forward all of these.
 
-- [x] **Step 1: Add selection methods to BoobaTerminal**
+- [x] **Step 1: Add selection methods to BobaTerminal**
 
-Add these methods to the `BoobaTerminal` class, after the `disconnect()` method:
+Add these methods to the `BobaTerminal` class, after the `disconnect()` method:
 
 ```typescript
 // --- Selection & Clipboard ---
@@ -181,8 +181,8 @@ Expected: No errors
 - [x] **Step 3: Commit**
 
 ```bash
-git add ts/booba.ts
-git commit -m "feat: add selection and clipboard methods to BoobaTerminal"
+git add ts/boba.ts
+git commit -m "feat: add selection and clipboard methods to BobaTerminal"
 ```
 
 ---
@@ -190,11 +190,11 @@ git commit -m "feat: add selection and clipboard methods to BoobaTerminal"
 ### Task 3: Add scrollback and viewport methods
 
 **Files:**
-- Modify: `ts/booba.ts` (add methods to BoobaTerminal class)
+- Modify: `ts/boba.ts` (add methods to BobaTerminal class)
 
 ghostty-web's Terminal has `scrollLines()`, `scrollPages()`, `scrollToTop()`, `scrollToBottom()`, `scrollToLine()`, `getViewportY()`. We forward all of these.
 
-- [x] **Step 1: Add scroll methods to BoobaTerminal**
+- [x] **Step 1: Add scroll methods to BobaTerminal**
 
 Add these methods after the selection methods:
 
@@ -240,8 +240,8 @@ Expected: No errors
 - [x] **Step 3: Commit**
 
 ```bash
-git add ts/booba.ts
-git commit -m "feat: add scrollback and viewport methods to BoobaTerminal"
+git add ts/boba.ts
+git commit -m "feat: add scrollback and viewport methods to BobaTerminal"
 ```
 
 ---
@@ -249,7 +249,7 @@ git commit -m "feat: add scrollback and viewport methods to BoobaTerminal"
 ### Task 4: Add paste, focus, clear, and reset methods
 
 **Files:**
-- Modify: `ts/booba.ts` (add methods to BoobaTerminal class)
+- Modify: `ts/boba.ts` (add methods to BobaTerminal class)
 
 - [x] **Step 1: Add terminal control methods**
 
@@ -307,8 +307,8 @@ Expected: No errors
 - [x] **Step 3: Commit**
 
 ```bash
-git add ts/booba.ts
-git commit -m "feat: add paste, focus, clear, reset, write methods to BoobaTerminal"
+git add ts/boba.ts
+git commit -m "feat: add paste, focus, clear, reset, write methods to BobaTerminal"
 ```
 
 ---
@@ -316,7 +316,7 @@ git commit -m "feat: add paste, focus, clear, reset, write methods to BoobaTermi
 ### Task 5: Add terminal mode query methods
 
 **Files:**
-- Modify: `ts/booba.ts` (add methods to BoobaTerminal class)
+- Modify: `ts/boba.ts` (add methods to BobaTerminal class)
 
 These let consumers check what the connected BubbleTea program has enabled.
 
@@ -356,8 +356,8 @@ Expected: No errors
 - [x] **Step 3: Commit**
 
 ```bash
-git add ts/booba.ts
-git commit -m "feat: add terminal mode query methods to BoobaTerminal"
+git add ts/boba.ts
+git commit -m "feat: add terminal mode query methods to BobaTerminal"
 ```
 
 ---
@@ -365,11 +365,11 @@ git commit -m "feat: add terminal mode query methods to BoobaTerminal"
 ### Task 6: Add event forwarding for all Terminal events
 
 **Files:**
-- Modify: `ts/booba.ts` (add event properties and wire them up in `init()`)
+- Modify: `ts/boba.ts` (add event properties and wire them up in `init()`)
 
-ghostty-web's Terminal fires: `onData`, `onResize`, `onBell`, `onSelectionChange`, `onKey`, `onTitleChange`, `onScroll`, `onRender`, `onCursorMove`. Currently booba only uses `onData` and `onResize` internally (in `init()` and `_setupAdapter()`). We need to expose all events to consumers.
+ghostty-web's Terminal fires: `onData`, `onResize`, `onBell`, `onSelectionChange`, `onKey`, `onTitleChange`, `onScroll`, `onRender`, `onCursorMove`. Currently boba only uses `onData` and `onResize` internally (in `init()` and `_setupAdapter()`). We need to expose all events to consumers.
 
-- [x] **Step 1: Add event callback properties to BoobaTerminal**
+- [x] **Step 1: Add event callback properties to BobaTerminal**
 
 Add these properties to the class, alongside the existing `onStatusChange`:
 
@@ -442,8 +442,8 @@ Expected: No errors
 - [x] **Step 5: Commit**
 
 ```bash
-git add ts/booba.ts
-git commit -m "feat: forward all ghostty-web Terminal events through BoobaTerminal"
+git add ts/boba.ts
+git commit -m "feat: forward all ghostty-web Terminal events through BobaTerminal"
 ```
 
 ---
@@ -451,7 +451,7 @@ git commit -m "feat: forward all ghostty-web Terminal events through BoobaTermin
 ### Task 7: Add link provider registration and custom key/wheel handlers
 
 **Files:**
-- Modify: `ts/booba.ts` (add methods to BoobaTerminal class)
+- Modify: `ts/boba.ts` (add methods to BobaTerminal class)
 
 - [x] **Step 1: Add link and handler methods**
 
@@ -495,7 +495,7 @@ Expected: No errors
 - [x] **Step 3: Commit**
 
 ```bash
-git add ts/booba.ts
+git add ts/boba.ts
 git commit -m "feat: add link provider registration and custom event handlers"
 ```
 
@@ -504,13 +504,13 @@ git commit -m "feat: add link provider registration and custom event handlers"
 ### Task 8: Add dispose method and direct terminal/buffer access
 
 **Files:**
-- Modify: `ts/booba.ts` (add methods to BoobaTerminal class)
+- Modify: `ts/boba.ts` (add methods to BobaTerminal class)
 
 Consumers may need the underlying Terminal for advanced use cases. Expose it as a read-only getter alongside a proper dispose lifecycle method.
 
 - [x] **Step 1: Add dispose and terminal access**
 
-Add to the BoobaTerminal class:
+Add to the BobaTerminal class:
 
 ```typescript
 // --- Lifecycle ---
@@ -552,7 +552,7 @@ Expected: No errors
 - [x] **Step 3: Commit**
 
 ```bash
-git add ts/booba.ts
+git add ts/boba.ts
 git commit -m "feat: add dispose lifecycle and direct terminal access"
 ```
 
@@ -562,7 +562,7 @@ git commit -m "feat: add dispose lifecycle and direct terminal access"
 
 **Files:**
 - Create: `ts/types.ts`
-- Modify: `ts/booba.ts` (add re-export)
+- Modify: `ts/boba.ts` (add re-export)
 
 Provide type definitions that consumers can import without reaching into ghostty-web directly.
 
@@ -570,14 +570,14 @@ Provide type definitions that consumers can import without reaching into ghostty
 
 ```typescript
 /**
- * Booba type definitions
+ * Boba type definitions
  * 
- * Re-exports of ghostty-web types that are part of booba's public API,
- * plus booba-specific types.
+ * Re-exports of ghostty-web types that are part of boba's public API,
+ * plus boba-specific types.
  */
 
 /** Terminal theme colors */
-export interface BoobaTheme {
+export interface BobaTheme {
     foreground?: string;
     background?: string;
     cursor?: string;
@@ -636,12 +636,12 @@ export interface BoobaLink {
 }
 ```
 
-- [x] **Step 2: Re-export types from booba.ts**
+- [x] **Step 2: Re-export types from boba.ts**
 
-Add to the bottom of `ts/booba.ts`, alongside the existing re-exports:
+Add to the bottom of `ts/boba.ts`, alongside the existing re-exports:
 
 ```typescript
-export type { BoobaTheme, BoobaBufferRange, BoobaKeyEvent, BoobaRenderEvent, BoobaLinkProvider, BoobaLink } from './types.js';
+export type { BobaTheme, BoobaBufferRange, BoobaKeyEvent, BoobaRenderEvent, BoobaLinkProvider, BoobaLink } from './types.js';
 ```
 
 - [x] **Step 3: Verify TypeScript compiles**
@@ -652,8 +652,8 @@ Expected: No errors
 - [x] **Step 4: Commit**
 
 ```bash
-git add ts/types.ts ts/booba.ts
-git commit -m "feat: add booba type definitions for public API surface"
+git add ts/types.ts ts/boba.ts
+git commit -m "feat: add boba type definitions for public API surface"
 ```
 
 ---
@@ -667,14 +667,14 @@ Add title bar updating from `onTitleChange`, selection copy button, and scroll i
 
 - [x] **Step 1: Update the title bar to respond to onTitleChange**
 
-In `serve/static/index.html`, after `booba.onStatusChange = ...`, add:
+In `serve/static/index.html`, after `boba.onStatusChange = ...`, add:
 
 ```javascript
-booba.onTitleChange = (title) => {
-    document.querySelector('.title').textContent = title || 'booba-view-example';
+boba.onTitleChange = (title) => {
+    document.querySelector('.title').textContent = title || 'boba-view-example';
 };
 
-booba.onBell = () => {
+boba.onBell = () => {
     // Brief visual flash on bell
     const container = document.getElementById('terminal-container');
     container.style.outline = '2px solid #ffbd2e';
@@ -684,11 +684,11 @@ booba.onBell = () => {
 
 - [x] **Step 2: Focus terminal after connection**
 
-After `booba.connectWebSocket(wsUrl);`, add:
+After `boba.connectWebSocket(wsUrl);`, add:
 
 ```javascript
 // Focus terminal for immediate keyboard input
-booba.focus();
+boba.focus();
 ```
 
 - [x] **Step 3: Verify the HTML is valid**
@@ -712,22 +712,22 @@ git commit -m "feat: update example page to demonstrate title, bell, and focus"
 - [x] **Step 1: Full TypeScript build**
 
 Run: `npx tsc`
-Expected: Clean build, no errors. Output files in `serve/static/booba/`.
+Expected: Clean build, no errors. Output files in `serve/static/boba/`.
 
 - [x] **Step 2: Verify output files exist**
 
-Run: `ls -la serve/static/booba/booba.js serve/static/booba/booba.d.ts serve/static/booba/types.js serve/static/booba/types.d.ts`
+Run: `ls -la serve/static/boba/boba.js serve/static/boba/boba.d.ts serve/static/boba/types.js serve/static/boba/types.d.ts`
 Expected: All four files present with recent timestamps.
 
 - [x] **Step 3: Verify the declaration file exports all new methods**
 
-Run: `grep -E '(getSelection|scrollLines|paste|focus|hasMouseTracking|onBell|onTitleChange|registerLinkProvider|dispose|terminal)' serve/static/booba/booba.d.ts`
+Run: `grep -E '(getSelection|scrollLines|paste|focus|hasMouseTracking|onBell|onTitleChange|registerLinkProvider|dispose|terminal)' serve/static/boba/boba.d.ts`
 Expected: All new methods/properties appear in the declaration output.
 
 - [x] **Step 4: Commit build output**
 
 ```bash
-git add serve/static/booba/
+git add serve/static/boba/
 git commit -m "build: compile TypeScript with full ghostty-web API coverage"
 ```
 
@@ -735,7 +735,7 @@ git commit -m "build: compile TypeScript with full ghostty-web API coverage"
 
 ## Summary of API coverage after implementation
 
-| ghostty-web Terminal API | Booba coverage |
+| ghostty-web Terminal API | Boba coverage |
 |--------------------------|----------------|
 | `write()`, `writeln()` | `write()`, `writeln()` |
 | `paste()`, `input()` | `paste()`, `input()` |

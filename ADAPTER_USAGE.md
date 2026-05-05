@@ -1,32 +1,32 @@
-# Booba Adapter Usage Guide
+# Boba Adapter Usage Guide
 
-The BubbleTea adapter abstraction allows you to connect to Booba-based BubbleTea programs in multiple ways. For the full `BoobaTerminal` API reference, see [docs/TYPESCRIPT_API.md](./docs/TYPESCRIPT_API.md).
+The BubbleTea adapter abstraction allows you to connect to Boba-based BubbleTea programs in multiple ways. For the full `BobaTerminal` API reference, see [docs/TYPESCRIPT_API.md](./docs/TYPESCRIPT_API.md).
 
 ## 1. WebSocket Mode (Backend Server)
 
 Connect to a BubbleTea application running on a backend server via WebSocket.
 
 ```javascript
-import { BoobaTerminal } from './booba/booba.js';
+import { BobaTerminal } from './boba/boba.js';
 
-const booba = new BoobaTerminal('terminal-container', {
+const boba = new BobaTerminal('terminal-container', {
     cols: 80,
     rows: 24,
     scrollback: 1000,
     cursorBlink: true,
 });
 
-booba.onStatusChange = (state, message) => {
+boba.onStatusChange = (state, message) => {
     console.log(`Connection ${state}: ${message}`);
 };
 
-booba.onTitleChange = (title) => {
+boba.onTitleChange = (title) => {
     document.title = title || 'My Terminal';
 };
 
-await booba.init();
-booba.connectWebSocket('ws://localhost:8080/ws');
-booba.focus();
+await boba.init();
+boba.connectWebSocket('ws://localhost:8080/ws');
+boba.focus();
 ```
 
 **Protocol**: Uses a custom binary protocol
@@ -42,8 +42,8 @@ const wsUrl = 'ws://localhost:8080/ws';
 const wtUrl = 'https://localhost:8080/wt';
 const certHashUrl = 'https://localhost:8080/cert-hash';
 
-await booba.init();
-booba.connectAuto(wsUrl, wtUrl, certHashUrl);
+await boba.init();
+boba.connectAuto(wsUrl, wtUrl, certHashUrl);
 ```
 
 If you disable WebTransport on the server, pass `null` for `wtUrl` and `certHashUrl` or use `connectWebSocket(...)` directly.
@@ -53,50 +53,50 @@ If you disable WebTransport on the server, pass `null` for `wtUrl` and `certHash
 Connect to a BubbleTea application compiled to WebAssembly and running in the browser.
 
 ```javascript
-import { BoobaTerminal } from './booba/booba.js';
+import { BobaTerminal } from './boba/boba.js';
 
-const booba = new BoobaTerminal('terminal-container');
+const boba = new BobaTerminal('terminal-container');
 
-await booba.init();
-booba.connectWasm(16); // Poll every 16ms (~60fps)
+await boba.init();
+boba.connectWasm(16); // Poll every 16ms (~60fps)
 ```
 
-**Go side**: Use `booba.Run` or `booba.NewProgram` (from `github.com/NimbleMarkets/go-booba`) as the entry point — these wire up the JS bridge automatically when compiled with `GOARCH=wasm GOOS=js`. Build with `booba-wasm-build`:
+**Go side**: Use `boba.Run` or `boba.NewProgram` (from `github.com/btwiuse/boba`) as the entry point — these wire up the JS bridge automatically when compiled with `GOARCH=wasm GOOS=js`. Build with `boba-wasm-build`:
 
 ```sh
-go run github.com/NimbleMarkets/go-booba/cmd/booba-wasm-build -o web/app.wasm ./cmd/myapp/
+go run github.com/btwiuse/boba/cmd/boba-wasm-build -o web/app.wasm ./cmd/myapp/
 ```
 
 For advanced use cases that need direct control over the JS bridge (custom `js.FuncOf` callbacks, manual buffer management, etc.), the [`wasm`](./wasm) subpackage exposes the low-level API.
 
-**Required JS globals** (registered automatically by `booba.Run` / `booba.NewProgram`):
+**Required JS globals** (registered automatically by `boba.Run` / `boba.NewProgram`):
 - `window.bubbletea_write(data: string): void`
 - `window.bubbletea_read(): string`
 - `window.bubbletea_resize(cols: number, rows: number): void`
 
 ## 3. Custom Adapter
 
-Implement your own `BoobaAdapter` for custom transport mechanisms:
+Implement your own `BobaAdapter` for custom transport mechanisms:
 
 ```typescript
-import { BoobaAdapter, BoobaConnectionState } from './booba/adapter.js';
+import { BobaAdapter, BobaConnectionState } from './boba/adapter.js';
 
-class MyCustomAdapter implements BoobaAdapter {
-    boobaRead(): string | Uint8Array | null {
+class MyCustomAdapter implements BobaAdapter {
+    bobaRead(): string | Uint8Array | null {
         // Your implementation
     }
     
-    boobaWrite(data: string | Uint8Array): void {
+    bobaWrite(data: string | Uint8Array): void {
         // Your implementation
     }
     
-    boobaResize(cols: number, rows: number): void {
+    bobaResize(cols: number, rows: number): void {
         // Your implementation
     }
     
     connect(
         onData: (data: string | Uint8Array) => void,
-        onStateChange: (state: BoobaConnectionState, message: string) => void
+        onStateChange: (state: BobaConnectionState, message: string) => void
     ): void {
         // Your implementation
     }
@@ -107,26 +107,26 @@ class MyCustomAdapter implements BoobaAdapter {
 }
 
 const adapter = new MyCustomAdapter();
-booba.connectAdapter(adapter);
+boba.connectAdapter(adapter);
 ```
 
 ## TypeScript Naming Conventions
 
 The adapter follows TypeScript naming conventions:
 
-- **Interface names**: `PascalCase` (e.g., `BoobaAdapter`)
-- **Method names**: `camelCase` (e.g., `boobaRead`, `boobaWrite`, `boobaResize`)
+- **Interface names**: `PascalCase` (e.g., `BobaAdapter`)
+- **Method names**: `camelCase` (e.g., `bobaRead`, `bobaWrite`, `bobaResize`)
 - **Type names**: `PascalCase` (e.g., `ConnectionState`)
 
 ## Adapter Methods
 
-### `boobaRead(): string | Uint8Array | null`
+### `bobaRead(): string | Uint8Array | null`
 Read output from the BubbleTea program. Returns `null` if no data is available.
 
-### `boobaWrite(data: string | Uint8Array): void`
+### `bobaWrite(data: string | Uint8Array): void`
 Send user input to the BubbleTea program.
 
-### `boobaResize(cols: number, rows: number): void`
+### `bobaResize(cols: number, rows: number): void`
 Notify the BubbleTea program of a terminal resize event.
 
 ### `connect(onData, onStateChange): void`
@@ -137,10 +137,10 @@ Close the connection and clean up resources.
 
 ## Terminal Features Available Across All Adapters
 
-Regardless of which adapter you use, all `BoobaTerminal` features work the same way. The adapter only handles the transport (how data gets to/from the BubbleTea program). Features like selection, scrollback, paste, focus, link detection, and events are handled by the terminal layer above the adapter.
+Regardless of which adapter you use, all `BobaTerminal` features work the same way. The adapter only handles the transport (how data gets to/from the BubbleTea program). Features like selection, scrollback, paste, focus, link detection, and events are handled by the terminal layer above the adapter.
 
-**Mouse tracking**: If your BubbleTea program enables mouse tracking (e.g., via `tea.WithMouseCellMotion()`), mouse events are encoded as escape sequences by ghostty-web and flow through the adapter's `boobaWrite` as regular input data. No adapter changes are needed.
+**Mouse tracking**: If your BubbleTea program enables mouse tracking (e.g., via `tea.WithMouseCellMotion()`), mouse events are encoded as escape sequences by ghostty-web and flow through the adapter's `bobaWrite` as regular input data. No adapter changes are needed.
 
-**Bracketed paste**: Similarly, `booba.paste(data)` wraps the text in bracketed paste escape sequences when the program has enabled bracketed paste mode. The escape sequences flow through `boobaWrite` transparently.
+**Bracketed paste**: Similarly, `boba.paste(data)` wraps the text in bracketed paste escape sequences when the program has enabled bracketed paste mode. The escape sequences flow through `bobaWrite` transparently.
 
-**Lifecycle**: Always call `booba.dispose()` when tearing down the terminal to clean up event listeners and resources. This automatically calls `disconnect()` on the adapter.
+**Lifecycle**: Always call `boba.dispose()` when tearing down the terminal to clean up event listeners and resources. This automatically calls `disconnect()` on the adapter.

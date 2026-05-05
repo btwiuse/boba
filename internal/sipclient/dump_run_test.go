@@ -12,12 +12,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 	"github.com/coder/websocket"
 )
 
 // fakeServer is a minimal /ws endpoint that sends one options frame, one
-// output frame, then a close frame. Mirrors the shape a real booba server
+// output frame, then a close frame. Mirrors the shape a real boba server
 // produces without pulling serve/ into the test.
 func fakeServer(t *testing.T) *httptest.Server {
 	t.Helper()

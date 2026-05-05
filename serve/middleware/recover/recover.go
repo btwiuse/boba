@@ -16,7 +16,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/NimbleMarkets/go-booba/serve"
+	"github.com/btwiuse/boba/serve"
 )
 
 type config struct {

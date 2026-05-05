@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 func TestProcessMessageRejectsResizeOverMaxWindowDims(t *testing.T) {

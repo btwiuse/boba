@@ -54,22 +54,22 @@ func TestServeOptionsConfigRejectsBadListen(t *testing.T) {
 }
 
 // SEC-1: password can be supplied via --password, --password-file, or
-// $BOOBA_PASSWORD. Precedence is flag > file > env so operators can
+// $BOBA_PASSWORD. Precedence is flag > file > env so operators can
 // override a baked-in default without editing the command line.
 
 func TestServeOptionsPasswordFromEnv(t *testing.T) {
-	t.Setenv("BOOBA_PASSWORD", "env-secret")
+	t.Setenv("BOBA_PASSWORD", "env-secret")
 	cfg, err := (ServeOptions{Username: "admin"}).Config()
 	if err != nil {
 		t.Fatalf("Config() error = %v", err)
 	}
 	if cfg.BasicPassword != "env-secret" {
-		t.Errorf("BasicPassword = %q; want %q (from $BOOBA_PASSWORD)", cfg.BasicPassword, "env-secret")
+		t.Errorf("BasicPassword = %q; want %q (from $BOBA_PASSWORD)", cfg.BasicPassword, "env-secret")
 	}
 }
 
 func TestServeOptionsPasswordFromFile(t *testing.T) {
-	t.Setenv("BOOBA_PASSWORD", "")
+	t.Setenv("BOBA_PASSWORD", "")
 	path := filepath.Join(t.TempDir(), "pass")
 	if err := os.WriteFile(path, []byte("file-secret\n"), 0o600); err != nil {
 		t.Fatalf("seed password file: %v", err)
@@ -84,7 +84,7 @@ func TestServeOptionsPasswordFromFile(t *testing.T) {
 }
 
 func TestServeOptionsPasswordFlagBeatsFileAndEnv(t *testing.T) {
-	t.Setenv("BOOBA_PASSWORD", "env-secret")
+	t.Setenv("BOBA_PASSWORD", "env-secret")
 	path := filepath.Join(t.TempDir(), "pass")
 	if err := os.WriteFile(path, []byte("file-secret\n"), 0o600); err != nil {
 		t.Fatalf("seed password file: %v", err)
@@ -99,7 +99,7 @@ func TestServeOptionsPasswordFlagBeatsFileAndEnv(t *testing.T) {
 }
 
 func TestServeOptionsPasswordFileBeatsEnv(t *testing.T) {
-	t.Setenv("BOOBA_PASSWORD", "env-secret")
+	t.Setenv("BOBA_PASSWORD", "env-secret")
 	path := filepath.Join(t.TempDir(), "pass")
 	if err := os.WriteFile(path, []byte("file-secret"), 0o600); err != nil {
 		t.Fatalf("seed password file: %v", err)
@@ -114,7 +114,7 @@ func TestServeOptionsPasswordFileBeatsEnv(t *testing.T) {
 }
 
 func TestServeOptionsPasswordFileMissingFails(t *testing.T) {
-	_, err := (ServeOptions{PasswordFile: "/does/not/exist/booba-pass"}).Config()
+	_, err := (ServeOptions{PasswordFile: "/does/not/exist/boba-pass"}).Config()
 	if err == nil {
 		t.Fatal("expected missing --password-file to fail")
 	}

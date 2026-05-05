@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 type fakeHandler struct {

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/NimbleMarkets/go-booba/internal/cli"
+	"github.com/btwiuse/boba/internal/cli"
 )
 
 func main() {

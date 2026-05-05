@@ -1,6 +1,6 @@
-import { BoobaProtocolAdapter } from './websocket_adapter.js';
-import { BoobaWebTransportAdapter } from './webtransport_adapter.js';
-export class BoobaAutoAdapter {
+import { BobaProtocolAdapter } from './websocket_adapter.js';
+import { BobaWebTransportAdapter } from './webtransport_adapter.js';
+export class BobaAutoAdapter {
     constructor(wsUrl, wtUrl, certHashUrl, callbacks = {}) {
         this.wsUrl = wsUrl;
         this.wtUrl = wtUrl;
@@ -10,14 +10,14 @@ export class BoobaAutoAdapter {
         this.onDataCallback = null;
         this.onStateChangeCallback = null;
     }
-    boobaRead() {
-        return this.adapter?.boobaRead() ?? null;
+    bobaRead() {
+        return this.adapter?.bobaRead() ?? null;
     }
-    boobaWrite(data) {
-        this.adapter?.boobaWrite(data);
+    bobaWrite(data) {
+        this.adapter?.bobaWrite(data);
     }
-    boobaResize(cols, rows, widthPx, heightPx) {
-        this.adapter?.boobaResize(cols, rows, widthPx, heightPx);
+    bobaResize(cols, rows, widthPx, heightPx) {
+        this.adapter?.bobaResize(cols, rows, widthPx, heightPx);
     }
     connect(onData, onStateChange) {
         this.onDataCallback = onData;
@@ -31,7 +31,7 @@ export class BoobaAutoAdapter {
                 const resp = await fetch(this.certHashUrl);
                 if (resp.ok) {
                     const { hash } = await resp.json();
-                    const wt = new BoobaWebTransportAdapter(this.wtUrl, hash, this.callbacks);
+                    const wt = new BobaWebTransportAdapter(this.wtUrl, hash, this.callbacks);
                     this.adapter = wt;
                     await wt.connect(this.onDataCallback, this.onStateChangeCallback);
                     return; // WebTransport connected successfully
@@ -42,7 +42,7 @@ export class BoobaAutoAdapter {
             }
         }
         // Fall back to WebSocket
-        const ws = new BoobaProtocolAdapter(this.wsUrl, this.callbacks);
+        const ws = new BobaProtocolAdapter(this.wsUrl, this.callbacks);
         this.adapter = ws;
         ws.connect(this.onDataCallback, this.onStateChangeCallback);
     }

@@ -46,7 +46,7 @@ func TestRunEscapePrompt(t *testing.T) {
 		want    EscapeAction
 		wantOut []string // substrings that must appear in output
 	}{
-		{"quit", "quit\n", ActionDisconnect, []string{"booba-sip-client>"}},
+		{"quit", "quit\n", ActionDisconnect, []string{"boba-sip-client>"}},
 		{"exit", "exit\n", ActionDisconnect, nil},
 		{"q", "q\n", ActionDisconnect, nil},
 		{"continue", "continue\n", ActionContinue, nil},

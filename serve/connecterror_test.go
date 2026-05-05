@@ -73,7 +73,7 @@ func TestWriteConnectErrorWritesStatusHeadersAndBody(t *testing.T) {
 	rec := httptest.NewRecorder()
 	err := &ConnectError{
 		Status:  401,
-		Headers: http.Header{"WWW-Authenticate": []string{`Basic realm="booba"`}},
+		Headers: http.Header{"WWW-Authenticate": []string{`Basic realm="boba"`}},
 		Body:    "Unauthorized",
 	}
 	writeConnectError(rec, err)
@@ -82,8 +82,8 @@ func TestWriteConnectErrorWritesStatusHeadersAndBody(t *testing.T) {
 	if res.StatusCode != 401 {
 		t.Errorf("status = %d; want 401", res.StatusCode)
 	}
-	if got := res.Header.Get("WWW-Authenticate"); got != `Basic realm="booba"` {
-		t.Errorf("WWW-Authenticate = %q; want Basic realm=\"booba\"", got)
+	if got := res.Header.Get("WWW-Authenticate"); got != `Basic realm="boba"` {
+		t.Errorf("WWW-Authenticate = %q; want Basic realm=\"boba\"", got)
 	}
 	body := rec.Body.String()
 	if body != "Unauthorized\n" && body != "Unauthorized" {

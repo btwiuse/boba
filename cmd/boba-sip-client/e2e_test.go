@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NimbleMarkets/go-booba/internal/sipclient"
-	"github.com/NimbleMarkets/go-booba/serve"
+	"github.com/btwiuse/boba/internal/sipclient"
+	"github.com/btwiuse/boba/serve"
 )
 
 // TestE2E_DumpFramesAgainstRealServer spins up a real serve.Server backed by a

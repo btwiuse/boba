@@ -99,7 +99,7 @@ func dialWT(ctx context.Context, opts DialOptions) (*wtFrameConn, error) {
 		headers = http.Header{}
 	}
 	// Origin handling: WT expects a same-origin hint via the Origin header
-	// for some servers, but booba's server honors the --origin check; we
+	// for some servers, but boba's server honors the --origin check; we
 	// set the same computed Origin as the WS path for consistency.
 	origin := opts.Origin
 	if origin == "" {

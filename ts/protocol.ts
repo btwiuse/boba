@@ -1,5 +1,5 @@
 /**
- * Booba Protocol v2 — Sip-compatible message encoding/decoding.
+ * Boba Protocol v2 — Sip-compatible message encoding/decoding.
  */
 
 export const MsgInput     = 0x30; // '0'

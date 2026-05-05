@@ -1,18 +1,18 @@
-# `booba-sip-client` WebTransport Implementation Plan
+# `boba-sip-client` WebTransport Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add WebTransport client support to `booba-sip-client` so it can dial `https://host/wt` URLs in addition to the existing `ws://` / `wss://` paths, with no new CLI flags and full feature parity between transports.
+**Goal:** Add WebTransport client support to `boba-sip-client` so it can dial `https://host/wt` URLs in addition to the existing `ws://` / `wss://` paths, with no new CLI flags and full feature parity between transports.
 
 **Architecture:** Introduce a `FrameConn` interface inside `internal/sipclient/` that abstracts the framed transport. The existing `*websocket.Conn` call sites (`RunDump`, `runInteractive`, `Router.Pong`, send helpers) are refactored to depend on this interface. A `wsFrameConn` wraps the current WebSocket path; a new `wtFrameConn` wraps `*webtransport.Session` plus its bidirectional stream. `Dial` dispatches by URL scheme.
 
 **Tech Stack:**
-- Go 1.25, module `github.com/NimbleMarkets/go-booba`
+- Go 1.25, module `github.com/btwiuse/boba`
 - `github.com/coder/websocket` v1.8.14 (already direct)
 - `github.com/quic-go/webtransport-go` v0.10.0 (already indirect via `serve/`; promoted to direct by this work)
 - Standard Go testing
 
-**Design spec:** `docs/superpowers/specs/2026-04-22-booba-sip-client-webtransport-design.md`
+**Design spec:** `docs/superpowers/specs/2026-04-22-boba-sip-client-webtransport-design.md`
 
 **Relevant API facts (verified against the installed deps):**
 - `webtransport.Dialer.Dial(ctx, urlStr, reqHdr) (*http.Response, *Session, error)` — **three** return values; the HTTP response is discarded for our purposes.
@@ -259,7 +259,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // newWSPair returns a paired (server, client) FrameConn for testing. The
@@ -380,7 +380,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // wsFrameConn wraps a *websocket.Conn into the FrameConn interface.
@@ -811,7 +811,7 @@ import (
 
 	"github.com/quic-go/webtransport-go"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // newWTPair returns a paired (server, client) FrameConn backed by a real
@@ -1015,7 +1015,7 @@ import (
 
 	"github.com/quic-go/webtransport-go"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // wtFrameConn wraps a *webtransport.Session plus its single bidirectional
@@ -1211,7 +1211,7 @@ func dialWT(ctx context.Context, opts DialOptions) (*wtFrameConn, error) {
         headers = http.Header{}
     }
     // Origin handling: WT expects a same-origin hint via the Origin header
-    // for some servers, but booba's server honors the --origin check; we
+    // for some servers, but boba's server honors the --origin check; we
     // set the same computed Origin as the WS path for consistency.
     origin := opts.Origin
     if origin == "" {
@@ -1274,12 +1274,12 @@ go test ./... -count=1
 ```
 Expected: all tests PASS. The build picks up the new `https://` scheme.
 
-Manual smoke test (requires a running booba server with WT enabled on port 8080 — the default):
+Manual smoke test (requires a running boba server with WT enabled on port 8080 — the default):
 
 ```bash
-./bin/booba --listen 127.0.0.1:8080 -- sh -c 'printf hello; sleep 1' &
+./bin/boba --listen 127.0.0.1:8080 -- sh -c 'printf hello; sleep 1' &
 sleep 0.5
-./bin/booba-sip-client --dump-frames --dump-timeout 3s --insecure-skip-verify https://127.0.0.1:8080/wt
+./bin/boba-sip-client --dump-frames --dump-timeout 3s --insecure-skip-verify https://127.0.0.1:8080/wt
 ```
 Expected: a JSON frame sequence ending with `{"type":"close"}`.
 
@@ -1308,7 +1308,7 @@ bidirectional stream immediately after Upgrade."
 In `internal/sipclient/root.go`'s `newRootCmd`, replace the existing `Long` string with:
 
 ```go
-Long: `booba-sip-client connects to a booba server. The URL scheme selects the
+Long: `boba-sip-client connects to a boba server. The URL scheme selects the
 transport:
 
   ws://  / wss://   WebSocket (path defaults to /ws)
@@ -1316,20 +1316,20 @@ transport:
 
 WebTransport requires the server to speak HTTP/3 over QUIC. Plain-HTTPS
 reverse proxies will not work; the server must have HTTP/3 enabled
-(default for ` + "`booba`" + ` servers unless HTTP3Port is -1).`,
+(default for ` + "`boba`" + ` servers unless HTTP3Port is -1).`,
 ```
 
 - [ ] **Step 2: Add a WebTransport subsection to README.md**
 
-Find the "Quickstart" or first usage section (wherever `booba-sip-client` is introduced) and append a short subsection:
+Find the "Quickstart" or first usage section (wherever `boba-sip-client` is introduced) and append a short subsection:
 
 ```markdown
 ### WebTransport
 
-`booba-sip-client` can dial servers over WebTransport by using an
+`boba-sip-client` can dial servers over WebTransport by using an
 `https://` URL:
 
-    booba-sip-client https://host:8443/wt
+    boba-sip-client https://host:8443/wt
 
 WebTransport uses HTTP/3 over QUIC and offers lower head-of-line-blocking
 latency than WebSocket. Requires the server to have HTTP/3 enabled
@@ -1343,8 +1343,8 @@ convention the existing README uses — inspect it first before pasting.)
 - [ ] **Step 3: Verify docs generation still works**
 
 ```bash
-task build-cmd-booba-sip-client
-./bin/booba-sip-client --help
+task build-cmd-boba-sip-client
+./bin/boba-sip-client --help
 ```
 Expected: the help output contains the new scheme table and HTTP/3 note.
 
@@ -1363,14 +1363,14 @@ needs to provide."
 
 ## Task 8: End-to-end test against a real `serve.Server` over WebTransport
 
-Mirror the existing WS e2e test in `cmd/booba-sip-client/e2e_test.go` with a WT variant that exercises the whole stack: real QUIC listener, real `serve.Server`, real `sipclient.RunDump`, real frame decoding.
+Mirror the existing WS e2e test in `cmd/boba-sip-client/e2e_test.go` with a WT variant that exercises the whole stack: real QUIC listener, real `serve.Server`, real `sipclient.RunDump`, real frame decoding.
 
 **Files:**
-- Modify: `cmd/booba-sip-client/e2e_test.go`
+- Modify: `cmd/boba-sip-client/e2e_test.go`
 
 - [ ] **Step 1: Inspect the existing WT server wiring in `serve/`**
 
-Read `/Users/evan/projects/booba/serve/server.go` lines ~110–250 to understand:
+Read `/Users/evan/projects/boba/serve/server.go` lines ~110–250 to understand:
 - How `newWebTransportServer()` constructs the `*webtransport.Server`.
 - How `startWebTransport(ctx, wtServer)` binds a QUIC listener.
 - Where the `HTTP3Port` is read from `Config`.
@@ -1379,7 +1379,7 @@ These define the canonical WT server-side wiring. The test reuses the same flow 
 
 - [ ] **Step 2: Add the WT e2e test**
 
-Append to `cmd/booba-sip-client/e2e_test.go`:
+Append to `cmd/boba-sip-client/e2e_test.go`:
 
 ```go
 func TestE2E_DumpFramesOverWebTransport(t *testing.T) {
@@ -1469,7 +1469,7 @@ Add the needed imports to the test file: `net`, `strconv`. Most others (`bytes`,
 - [ ] **Step 3: Run the test**
 
 ```bash
-go test ./cmd/booba-sip-client/ -run TestE2E_DumpFramesOverWebTransport -v -count=1
+go test ./cmd/boba-sip-client/ -run TestE2E_DumpFramesOverWebTransport -v -count=1
 ```
 
 Expected: PASS. If the test hangs, the most likely cause is `srv.Serve` not binding to the UDP port — inspect the existing WT test pattern in `serve/` for the correct wiring.
@@ -1477,7 +1477,7 @@ Expected: PASS. If the test hangs, the most likely cause is `srv.Serve` not bind
 - [ ] **Step 4: Commit**
 
 ```bash
-git add cmd/booba-sip-client/e2e_test.go
+git add cmd/boba-sip-client/e2e_test.go
 git commit -m "test(sip-client): end-to-end test over WebTransport
 
 Drives a real serve.Server over a real QUIC listener with

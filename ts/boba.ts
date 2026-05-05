@@ -1,25 +1,47 @@
-import { init, Terminal, FitAddon } from '../ghostty-web/ghostty-web.js';
-import { BoobaWasmAdapter } from './adapter.js';
-import { BoobaProtocolAdapter } from './websocket_adapter.js';
-import { BoobaAutoAdapter } from './auto_adapter.js';
+import { init, Terminal, FitAddon } from 'ghostty-web';
+import { BobaAdapter, BobaConnectionState, BobaWasmAdapter } from './adapter.js';
+import { BobaProtocolAdapter, type WebSocketAdapterCallbacks } from './websocket_adapter.js';
+import { BobaAutoAdapter } from './auto_adapter.js';
 import { OSC52Scanner } from './clipboard.js';
-export class BoobaTerminal {
-    constructor(containerId, options = {}) {
-        this.container = null;
-        this.term = null;
-        this.adapter = null;
-        this.fitAddon = null;
-        this._resizeHandler = null;
-        this._dprCleanup = null;
-        // --- Event Callbacks ---
-        this.onStatusChange = null;
-        this.onBell = null;
-        this.onSelectionChange = null;
-        this.onKey = null;
-        this.onTitleChange = null;
-        this.onScroll = null;
-        this.onRender = null;
-        this.onCursorMove = null;
+import type { BobaTheme, BobaBufferRange, BobaLinkProvider } from './types.js';
+
+export interface BobaTerminalOptions {
+    fontSize?: number;
+    fontFamily?: string;
+    cols?: number;
+    rows?: number;
+    cursorBlink?: boolean;
+    cursorStyle?: 'block' | 'underline' | 'bar';
+    scrollback?: number;
+    allowOSC52?: boolean;
+    allowTransparency?: boolean;
+    convertEol?: boolean;
+    disableStdin?: boolean;
+    smoothScrollDuration?: number;
+    theme?: BobaTheme;
+}
+
+export class BobaTerminal {
+    container: HTMLElement | null = null;
+    options: BobaTerminalOptions;
+    term: Terminal | null = null;
+    adapter: BobaAdapter | null = null;
+    fitAddon: FitAddon | null = null;
+    private _resizeHandler: (() => void) | null = null;
+    private _dprCleanup: (() => void) | null = null;
+    private osc52Scanner: OSC52Scanner;
+
+    // --- Event Callbacks ---
+    onStatusChange: ((state: string, message: string) => void) | null = null;
+    onBell: (() => void) | null = null;
+    onSelectionChange: (() => void) | null = null;
+    onKey: ((event: { key: string; domEvent: KeyboardEvent }) => void) | null = null;
+    onTitleChange: ((title: string) => void) | null = null;
+    onScroll: ((viewportY: number) => void) | null = null;
+    onRender: ((event: { start: number; end: number }) => void) | null = null;
+    onCursorMove: (() => void) | null = null;
+
+    constructor(containerId: string, options: BobaTerminalOptions = {}) {
         this.container = document.getElementById(containerId);
         this.options = {
             fontSize: 15,
@@ -35,252 +57,312 @@ export class BoobaTerminal {
         };
         this.osc52Scanner = new OSC52Scanner(this.options.allowOSC52 ?? false);
     }
+
     async init() {
         if (!this.container) {
-            throw new Error('BoobaTerminal.init: container element is null');
+            throw new Error('BobaTerminal.init: container element is null');
         }
         await init();
         const term = new Terminal(this.options);
         this.term = term;
+
         this.fitAddon = new FitAddon();
         term.loadAddon(this.fitAddon);
+
         term.open(this.container);
         this.fitAddon.fit();
         this.fitAddon.observeResize();
+
         // Handle window resize as fallback
         this._resizeHandler = () => { this.fitAddon?.fit(); };
         window.addEventListener('resize', this._resizeHandler);
+
         // Watch for devicePixelRatio changes (browser zoom, display switch)
         this._dprCleanup = this._watchDevicePixelRatio();
+
         // Listen for resize events from the terminal (triggered by fit addon)
         term.onResize((size) => {
             const px = this._pixelDims(size.cols, size.rows);
-            this.adapter?.boobaResize(size.cols, size.rows, px.widthPx, px.heightPx);
+            this.adapter?.bobaResize(size.cols, size.rows, px.widthPx, px.heightPx);
         });
+
         console.log('Terminal opened. Size:', term.cols, 'x', term.rows);
+
         // Send user input through adapter
         term.onData((data) => {
-            this.adapter?.boobaWrite(data);
+            this.adapter?.bobaWrite(data);
         });
+
         term.onBell(() => {
             this.onBell?.();
         });
+
         term.onSelectionChange(() => {
             this.onSelectionChange?.();
         });
+
         term.onKey((event) => {
             this.onKey?.(event);
         });
+
         term.onTitleChange((title) => {
             this.onTitleChange?.(title);
         });
+
         term.onScroll((viewportY) => {
             this.onScroll?.(viewportY);
         });
+
         term.onRender((event) => {
             this.onRender?.(event);
         });
+
         term.onCursorMove(() => {
             this.onCursorMove?.();
         });
     }
+
     /**
      * Connect to a BubbleTea backend via WebSocket
      * @param url WebSocket URL (e.g., 'ws://localhost:8080/ws')
      */
-    connectWebSocket(url) {
-        const callbacks = {
+    connectWebSocket(url: string) {
+        const callbacks: WebSocketAdapterCallbacks = {
             onTitle: (title) => { this.onTitleChange?.(title); },
-            onOptions: (_opts) => { },
+            onOptions: (_opts) => { /* store readOnly state if needed */ },
             onClose: (reason) => {
                 this.term?.write(`\r\n${reason}\r\n`);
             },
         };
-        this.adapter = new BoobaProtocolAdapter(url, callbacks);
+        this.adapter = new BobaProtocolAdapter(url, callbacks);
         this._setupAdapter();
     }
+
     /**
      * Connect with auto-detection: tries WebTransport first, falls back to WebSocket.
      * @param wsUrl WebSocket URL (e.g., 'ws://localhost:8080/ws')
      * @param wtUrl WebTransport URL (e.g., 'https://localhost:8080/wt'), or null to skip
      * @param certHashUrl URL to fetch cert hash (e.g., 'https://localhost:8080/cert-hash'), or null
      */
-    connectAuto(wsUrl, wtUrl = null, certHashUrl = null) {
+    connectAuto(wsUrl: string, wtUrl: string | null = null, certHashUrl: string | null = null) {
         const callbacks = {
-            onTitle: (title) => { this.onTitleChange?.(title); },
-            onOptions: (_opts) => { },
-            onClose: (reason) => { this.term?.write(`\r\n${reason}\r\n`); },
+            onTitle: (title: string) => { this.onTitleChange?.(title); },
+            onOptions: (_opts: any) => {},
+            onClose: (reason: string) => { this.term?.write(`\r\n${reason}\r\n`); },
         };
-        this.adapter = new BoobaAutoAdapter(wsUrl, wtUrl, certHashUrl, callbacks);
+        this.adapter = new BobaAutoAdapter(wsUrl, wtUrl, certHashUrl, callbacks);
         this._setupAdapter();
     }
+
     /**
      * Connect to a BubbleTea program running in WASM
      * @param pollMs Polling interval in milliseconds (default: 16ms / ~60fps)
      */
-    connectWasm(pollMs = 16) {
-        this.adapter = new BoobaWasmAdapter(pollMs);
+    connectWasm(pollMs: number = 16) {
+        this.adapter = new BobaWasmAdapter(pollMs);
         this._setupAdapter();
     }
+
     /**
      * Use a custom adapter implementation
      * @param adapter Custom BubbleTeaAdapter
      */
-    connectAdapter(adapter) {
+    connectAdapter(adapter: BobaAdapter) {
         this.adapter = adapter;
         this._setupAdapter();
     }
-    _setupAdapter() {
-        if (!this.adapter)
-            return;
-        this.adapter.connect((data) => {
-            if (data instanceof Uint8Array) {
-                this.osc52Scanner.scan(data);
+
+    private _setupAdapter() {
+        if (!this.adapter) return;
+        this.adapter.connect(
+            (data: string | Uint8Array) => {
+                if (data instanceof Uint8Array) {
+                    this.osc52Scanner.scan(data);
+                }
+                this.term?.write(data);
+            },
+            (state: BobaConnectionState, message: string) => {
+                this._updateStatus(state, message);
+                const term = this.term;
+                if (state === 'connected' && term) {
+                    const px = this._pixelDims(term.cols, term.rows);
+                    this.adapter?.bobaResize(term.cols, term.rows, px.widthPx, px.heightPx);
+                }
+                if (state === 'disconnected') {
+                    term?.write('\r\nConnection closed.\r\n');
+                }
             }
-            this.term?.write(data);
-        }, (state, message) => {
-            this._updateStatus(state, message);
-            const term = this.term;
-            if (state === 'connected' && term) {
-                const px = this._pixelDims(term.cols, term.rows);
-                this.adapter?.boobaResize(term.cols, term.rows, px.widthPx, px.heightPx);
-            }
-            if (state === 'disconnected') {
-                term?.write('\r\nConnection closed.\r\n');
-            }
-        });
+        );
     }
+
     disconnect() {
         this.adapter?.disconnect();
         this.adapter = null;
     }
+
     // --- Selection & Clipboard ---
+
     /** Get the currently selected text */
-    getSelection() {
+    getSelection(): string {
         return this.term?.getSelection() ?? '';
     }
+
     /** Check if there's an active selection */
-    hasSelection() {
+    hasSelection(): boolean {
         return this.term?.hasSelection() ?? false;
     }
+
     /** Clear the current selection */
-    clearSelection() {
+    clearSelection(): void {
         this.term?.clearSelection();
     }
+
     /** Copy the current selection to clipboard. Returns true if text was copied. */
-    copySelection() {
+    copySelection(): boolean {
         return this.term?.copySelection() ?? false;
     }
+
     /** Select all text in the terminal */
-    selectAll() {
+    selectAll(): void {
         this.term?.selectAll();
     }
+
     /** Select text at a specific position */
-    select(column, row, length) {
+    select(column: number, row: number, length: number): void {
         this.term?.select(column, row, length);
     }
+
     /** Select entire lines from start to end (inclusive) */
-    selectLines(start, end) {
+    selectLines(start: number, end: number): void {
         this.term?.selectLines(start, end);
     }
+
     /** Get the selection position as a buffer range, or undefined if no selection */
-    getSelectionPosition() {
+    getSelectionPosition(): BobaBufferRange | undefined {
         return this.term?.getSelectionPosition();
     }
+
     // --- Scrollback & Viewport ---
+
     /** Scroll by a number of lines (positive = down, negative = up into history) */
-    scrollLines(amount) {
+    scrollLines(amount: number): void {
         this.term?.scrollLines(amount);
     }
+
     /** Scroll by a number of pages */
-    scrollPages(amount) {
+    scrollPages(amount: number): void {
         this.term?.scrollPages(amount);
     }
+
     /** Scroll to the top of the scrollback buffer */
-    scrollToTop() {
+    scrollToTop(): void {
         this.term?.scrollToTop();
     }
+
     /** Scroll to the bottom (current output) */
-    scrollToBottom() {
+    scrollToBottom(): void {
         this.term?.scrollToBottom();
     }
+
     /** Scroll to a specific line in the buffer */
-    scrollToLine(line) {
+    scrollToLine(line: number): void {
         this.term?.scrollToLine(line);
     }
+
     /** Get the current viewport Y position (lines scrolled back from bottom) */
-    getViewportY() {
+    getViewportY(): number {
         return this.term?.getViewportY() ?? 0;
     }
+
     // --- Terminal Control ---
+
     /** Paste text into the terminal (uses bracketed paste if the program supports it) */
-    paste(data) {
+    paste(data: string): void {
         this.term?.paste(data);
     }
+
     /** Input data as if typed by the user */
-    input(data) {
+    input(data: string): void {
         this.term?.input(data, true);
     }
+
     /** Focus the terminal */
-    focus() {
+    focus(): void {
         this.term?.focus();
     }
+
     /** Remove focus from the terminal */
-    blur() {
+    blur(): void {
         this.term?.blur();
     }
+
     /** Clear the terminal screen */
-    clear() {
+    clear(): void {
         this.term?.clear();
     }
+
     /** Reset the terminal state */
-    reset() {
+    reset(): void {
         this.term?.reset();
     }
+
     /** Write data to the terminal display */
-    write(data, callback) {
+    write(data: string | Uint8Array, callback?: () => void): void {
         this.term?.write(data, callback);
     }
+
     /** Write data with a trailing newline */
-    writeln(data, callback) {
+    writeln(data: string | Uint8Array, callback?: () => void): void {
         this.term?.writeln(data, callback);
     }
+
     // --- Terminal Mode Queries ---
+
     /** Check if the program has enabled mouse tracking */
-    hasMouseTracking() {
+    hasMouseTracking(): boolean {
         return this.term?.hasMouseTracking() ?? false;
     }
+
     /** Check if the program has enabled bracketed paste mode */
-    hasBracketedPaste() {
+    hasBracketedPaste(): boolean {
         return this.term?.hasBracketedPaste() ?? false;
     }
+
     /** Check if the program has enabled focus event reporting */
-    hasFocusEvents() {
+    hasFocusEvents(): boolean {
         return this.term?.hasFocusEvents() ?? false;
     }
+
     /** Query an arbitrary terminal mode by number */
-    getMode(mode, isAnsi) {
+    getMode(mode: number, isAnsi?: boolean): boolean {
         return this.term?.getMode(mode, isAnsi) ?? false;
     }
+
     // --- Link Detection ---
+
     /**
      * Register a link provider for detecting clickable links in terminal output.
      */
-    registerLinkProvider(provider) {
+    registerLinkProvider(provider: BobaLinkProvider): void {
         this.term?.registerLinkProvider(provider);
     }
+
     // --- Custom Event Handlers ---
+
     /** Attach a custom keyboard event handler. Return true to prevent default handling. */
-    attachCustomKeyEventHandler(handler) {
+    attachCustomKeyEventHandler(handler: (event: KeyboardEvent) => boolean): void {
         this.term?.attachCustomKeyEventHandler(handler);
     }
+
     /** Attach a custom wheel event handler. Return true to prevent default scroll handling. */
-    attachCustomWheelEventHandler(handler) {
+    attachCustomWheelEventHandler(handler?: (event: WheelEvent) => boolean): void {
         this.term?.attachCustomWheelEventHandler(handler);
     }
+
     // --- Lifecycle ---
+
     /** Dispose the terminal and clean up all resources */
-    dispose() {
+    dispose(): void {
         this.disconnect();
         if (this._resizeHandler) {
             window.removeEventListener('resize', this._resizeHandler);
@@ -292,46 +374,53 @@ export class BoobaTerminal {
         this.term = null;
         this.fitAddon = null;
     }
+
     // --- Advanced Access ---
+
     /** Get the underlying ghostty-web Terminal instance for advanced use cases */
-    get terminal() {
+    get terminal(): Terminal | null {
         return this.term;
     }
+
     /** Get the current number of columns */
-    get cols() {
+    get cols(): number {
         return this.term?.cols ?? 0;
     }
+
     /** Get the current number of rows */
-    get rows() {
+    get rows(): number {
         return this.term?.rows ?? 0;
     }
-    _updateStatus(state, message) {
+
+    private _updateStatus(state: string, message: string) {
         if (this.onStatusChange) {
             this.onStatusChange(state, message);
         }
     }
+
     /**
      * Compute the canvas pixel dimensions corresponding to a (cols, rows) grid.
      * Returns zeros when the renderer hasn't measured yet so the server-side
      * resize falls back to character-only dimensions.
      */
-    _pixelDims(cols, rows) {
+    private _pixelDims(cols: number, rows: number): { widthPx: number; heightPx: number } {
         const renderer = this.term?.renderer;
-        if (!renderer)
-            return { widthPx: 0, heightPx: 0 };
+        if (!renderer) return { widthPx: 0, heightPx: 0 };
         const m = renderer.getMetrics();
         return {
             widthPx: Math.max(0, Math.round(m.width * cols)),
             heightPx: Math.max(0, Math.round(m.height * rows)),
         };
     }
+
     /**
      * Watch for devicePixelRatio changes (browser zoom, moving between displays).
      * Patches the renderer's cached DPR and forces a canvas re-scale.
      */
-    _watchDevicePixelRatio() {
+    private _watchDevicePixelRatio(): () => void {
         let currentDpr = window.devicePixelRatio;
-        let mql = null;
+        let mql: MediaQueryList | null = null;
+
         const onChange = () => {
             const newDpr = window.devicePixelRatio;
             if (newDpr !== currentDpr) {
@@ -339,7 +428,7 @@ export class BoobaTerminal {
                 const term = this.term;
                 const renderer = term?.renderer;
                 if (term && renderer) {
-                    renderer.devicePixelRatio = newDpr;
+                    (renderer as any).devicePixelRatio = newDpr;
                     renderer.resize(term.cols, term.rows);
                 }
                 this.fitAddon?.fit();
@@ -347,22 +436,26 @@ export class BoobaTerminal {
             // Re-register: matchMedia for DPR is a one-shot per value
             listen();
         };
+
         const listen = () => {
             mql?.removeEventListener('change', onChange);
             mql = window.matchMedia(`(resolution: ${currentDpr}dppx)`);
             mql.addEventListener('change', onChange);
         };
+
         listen();
+
         return () => {
             mql?.removeEventListener('change', onChange);
         };
     }
 }
+
 // Re-export adapter types for convenience
-export { BoobaWasmAdapter };
-export { BoobaProtocolAdapter } from './websocket_adapter.js';
-export { BoobaAutoAdapter } from './auto_adapter.js';
-export { BoobaWebTransportAdapter } from './webtransport_adapter.js';
+export { BobaAdapter, BobaWasmAdapter, BobaConnectionState };
+export { BobaProtocolAdapter } from './websocket_adapter.js';
+export { BobaAutoAdapter } from './auto_adapter.js';
+export { BobaWebTransportAdapter } from './webtransport_adapter.js';
 export { OSC52Scanner } from './clipboard.js';
-export { resolveBoobaURLs } from './urls.js';
-//# sourceMappingURL=booba.js.map
+export { resolveBobaURLs, type BobaURLs } from './urls.js';
+export type { BobaTheme, BobaBufferRange, BobaKeyEvent, BobaRenderEvent, BobaLinkProvider, BobaLink } from './types.js';

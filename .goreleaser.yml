@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # .goreleaser.yml
-# CGO-free release builds for go-booba CLI utilities.
+# CGO-free release builds for boba CLI utilities.
 
 version: 2
 
@@ -9,9 +9,9 @@ before:
     - go mod tidy
 
 builds:
-  - id: booba
-    main: ./cmd/booba
-    binary: booba
+  - id: boba
+    main: ./cmd/boba
+    binary: boba
     env:
       - CGO_ENABLED=0
     goos:
@@ -22,9 +22,9 @@ builds:
       - amd64
       - arm64
 
-  - id: booba-assets
-    main: ./cmd/booba-assets
-    binary: booba-assets
+  - id: boba-assets
+    main: ./cmd/boba-assets
+    binary: boba-assets
     env:
       - CGO_ENABLED=0
     goos:
@@ -35,9 +35,9 @@ builds:
       - amd64
       - arm64
 
-  - id: booba-sip-client
-    main: ./cmd/booba-sip-client
-    binary: booba-sip-client
+  - id: boba-sip-client
+    main: ./cmd/boba-sip-client
+    binary: boba-sip-client
     env:
       - CGO_ENABLED=0
     goos:
@@ -48,9 +48,9 @@ builds:
       - amd64
       - arm64
 
-  - id: booba-wasm-build
-    main: ./cmd/booba-wasm-build
-    binary: booba-wasm-build
+  - id: boba-wasm-build
+    main: ./cmd/boba-wasm-build
+    binary: boba-wasm-build
     env:
       - CGO_ENABLED=0
     goos:
@@ -80,10 +80,10 @@ notarize:
   macos:
     - enabled: '{{ isEnvSet "MACOS_SIGN_P12" }}'
       ids:
-        - booba
-        - booba-assets
-        - booba-sip-client
-        - booba-wasm-build
+        - boba
+        - boba-assets
+        - boba-sip-client
+        - boba-wasm-build
       sign:
         certificate: "{{.Env.MACOS_SIGN_P12}}"
         password: "{{.Env.MACOS_SIGN_PASSWORD}}"

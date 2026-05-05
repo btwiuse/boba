@@ -8,17 +8,17 @@
  * WASM-based adapter for pure embedding mode
  *
  * Communicates with BubbleTea via global WASM functions:
- * - window.booba_write(data: string): void
- * - window.booba_read(): string
- * - window.booba_resize(cols: number, rows: number): void
+ * - window.bubbletea_write(data: string): void
+ * - window.bubbletea_read(): string
+ * - window.bubbletea_resize(cols: number, rows: number): void
  */
-export class BoobaWasmAdapter {
+export class BobaWasmAdapter {
     constructor(pollMs = 16) {
         this.pollMs = pollMs;
         this.pollInterval = null;
         this.onDataCallback = null;
     } // ~60fps
-    boobaRead() {
+    bobaRead() {
         if (typeof window.bubbletea_read !== 'function') {
             console.warn('bubbletea_read not available');
             return null;
@@ -26,7 +26,7 @@ export class BoobaWasmAdapter {
         const data = window.bubbletea_read();
         return data || null;
     }
-    boobaWrite(data) {
+    bobaWrite(data) {
         if (typeof window.bubbletea_write !== 'function') {
             console.warn('bubbletea_write not available');
             return;
@@ -34,7 +34,7 @@ export class BoobaWasmAdapter {
         const dataStr = typeof data === 'string' ? data : new TextDecoder().decode(data);
         window.bubbletea_write(dataStr);
     }
-    boobaResize(cols, rows, _widthPx, _heightPx) {
+    bobaResize(cols, rows, _widthPx, _heightPx) {
         if (typeof window.bubbletea_resize !== 'function') {
             console.warn('bubbletea_resize not available');
             return;
@@ -46,7 +46,7 @@ export class BoobaWasmAdapter {
         this.onDataCallback = onData;
         const startPolling = () => {
             this.pollInterval = window.setInterval(() => {
-                const data = this.boobaRead();
+                const data = this.bobaRead();
                 if (data && data.length > 0 && this.onDataCallback) {
                     this.onDataCallback(data);
                 }

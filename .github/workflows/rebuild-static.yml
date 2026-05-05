@@ -1,6 +1,6 @@
 name: rebuild-static
 
-# Rebuilds serve/static/booba/* and serve/static/ghostty-web/* from source
+# Rebuilds serve/static/boba/* and serve/static/ghostty-web/* from source
 # (third_party/ghostty-web submodule + ts/*) on every push, and force-commits
 # the result back to the branch if it diverges from what was committed.
 #
@@ -51,7 +51,7 @@ jobs:
         # source/generates timestamp checks; without this, divergence between
         # committed bytes and submodule build outputs would silently persist.
         run: |
-          rm -rf serve/static/booba serve/static/ghostty-web
+          rm -rf serve/static/boba serve/static/ghostty-web
           task build-serve-assets
 
       - name: Detect divergence
@@ -60,7 +60,7 @@ jobs:
         # ignored side outputs (e.g. fresh .d.ts.map) and create empty commits.
         run: |
           if git diff --exit-code -- \
-              'serve/static/booba/*.js' \
+              'serve/static/boba/*.js' \
               'serve/static/ghostty-web/ghostty-web.js' \
               'serve/static/ghostty-web/ghostty-vt.wasm'; then
             echo "needs-commit=false" >> "$GITHUB_OUTPUT"
@@ -83,7 +83,7 @@ jobs:
           # Don't use -f: it would override .gitignore and add .d.ts /
           # .d.ts.map / .js.map / .umd.cjs / Vite helpers we don't track.
           git add -A -- \
-            'serve/static/booba/*.js' \
+            'serve/static/boba/*.js' \
             'serve/static/ghostty-web/ghostty-web.js' \
             'serve/static/ghostty-web/ghostty-vt.wasm'
           git commit -m "ci: rebuild embedded statics" \

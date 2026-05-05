@@ -1,4 +1,4 @@
-# Booba Deck: External Command Surface for BubbleTea Apps
+# Boba Deck: External Command Surface for BubbleTea Apps
 
 ## Goal
 
@@ -20,7 +20,7 @@ Add a protocol-level mechanism for BubbleTea apps to declare their available act
 |------|------|-----------|---------|-------------|
 | `'9'` | Deck | server → client | JSON | Current command surface |
 
-This extends the Protocol v2 spec. `'0'`–`'8'` are unchanged. Non-booba clients silently ignore `'9'` (forward-compatible).
+This extends the Protocol v2 spec. `'0'`–`'8'` are unchanged. Non-boba clients silently ignore `'9'` (forward-compatible).
 
 ### Wire Format
 
@@ -99,7 +99,7 @@ type DeckMessage struct {
 ```go
 // Decker is implemented by a tea.Model that exposes
 // an external command surface (the "Deck").
-// Booba checks for this interface on the root model
+// Boba checks for this interface on the root model
 // after each Update cycle.
 type Decker interface {
     // Deck returns the current command surface.
@@ -241,10 +241,10 @@ interface DeckMessage {
 }
 ```
 
-### BoobaTerminal API
+### BobaTerminal API
 
 ```typescript
-interface BoobaTerminalOptions {
+interface BobaTerminalOptions {
   // ... existing options ...
 
   // Called when the server sends an updated Deck.
@@ -252,7 +252,7 @@ interface BoobaTerminalOptions {
   onDeckChange?: (deck: DeckGroup[] | null) => void;
 }
 
-class BoobaTerminal {
+class BobaTerminal {
   // Returns the current deck, or null if no deck / not connected.
   getDeck(): DeckGroup[] | null;
 }
@@ -260,7 +260,7 @@ class BoobaTerminal {
 
 ### Adapter Integration
 
-The protocol adapter (`BoobaProtocolAdapter`) handles `'9'` messages:
+The protocol adapter (`BobaProtocolAdapter`) handles `'9'` messages:
 
 1. Decodes JSON payload as `DeckMessage`
 2. Stores as current deck state
@@ -269,7 +269,7 @@ The protocol adapter (`BoobaProtocolAdapter`) handles `'9'` messages:
 
 ### Rendering
 
-Booba's TypeScript library does **not** ship a default deck renderer. It delivers the data via `onDeckChange` and `getDeck()`. The consumer builds whatever UI makes sense for its context:
+Boba's TypeScript library does **not** ship a default deck renderer. It delivers the data via `onDeckChange` and `getDeck()`. The consumer builds whatever UI makes sense for its context:
 
 - **Mobile web**: Touch-friendly buttons below the terminal
 - **Assistive device**: Hardware button grid or accessibility overlay
@@ -284,7 +284,7 @@ Add `MsgDeck` to the message type table in `docs/superpowers/specs/2026-04-14-gh
 |------|------|-----------|---------|-------------|
 | `'9'` | Deck | server → client | `{"groups":[...]}` | Command surface declaration. Sent when the available actions change. |
 
-Add to the Ghostty Extensions section alongside `'8'` (KittyKbd). Forward-compatibility note: non-booba clients silently ignore `'9'`.
+Add to the Ghostty Extensions section alongside `'8'` (KittyKbd). Forward-compatibility note: non-boba clients silently ignore `'9'`.
 
 ## File Changes
 
@@ -294,12 +294,12 @@ Add to the Ghostty Extensions section alongside `'8'` (KittyKbd). Forward-compat
 | `serve/deck.go` | `Decker` interface, `DeckFromKeyMap` helper |
 | `serve/session.go` | Deck diffing in session update loop (when session.go is built) |
 | `ts/types.ts` | `DeckItem`, `DeckGroup`, `DeckMessage` types |
-| `ts/booba.ts` | `onDeckChange` callback, `getDeck()` method |
+| `ts/boba.ts` | `onDeckChange` callback, `getDeck()` method |
 | `ts/adapter.ts` | Handle `'9'` message in protocol adapter |
 
 ## Out of Scope
 
-- **Default deck renderer**: Booba delivers data, not UI. Consumers build their own.
+- **Default deck renderer**: Boba delivers data, not UI. Consumers build their own.
 - **Styling hints**: No icons, colors, categories, or enabled/disabled state in the protocol. Frontends decide presentation.
 - **Semantic command IDs**: Button taps inject raw keystrokes. No command identifiers beyond the key itself.
 - **Nested/hierarchical menus**: Flat groups only. If needed later, groups could contain subgroups without breaking the wire format.

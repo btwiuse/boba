@@ -1,6 +1,6 @@
 //go:build !js
 
-package booba
+package boba
 
 import (
 	tea "charm.land/bubbletea/v2"

@@ -1,13 +1,13 @@
-# go-booba - Web-based BubbleTea TUIs using libghostty
+# boba - Web-based BubbleTea TUIs using libghostty
 
 <p>
-    <a href="https://nimblemarkets.github.io/go-booba/"><img src="https://img.shields.io/badge/Command%20Ref-6B2DAD" alt="Command Reference"></a>
-    <a href="https://github.com/NimbleMarkets/go-booba/tags"><img src="https://img.shields.io/github/tag/NimbleMarkets/go-booba.svg" alt="Latest Release"></a>
-    <a href="https://pkg.go.dev/github.com/NimbleMarkets/go-booba?tab=doc"><img src="https://pkg.go.dev/badge/github.com/NimbleMarkets/go-booba?utm_source=godoc" alt="GoDoc"></a>
-    <a href="https://github.com/NimbleMarkets/go-booba/blob/main/CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg"  alt="Code Of Conduct"></a>
+    <a href="https://btwiuse.github.io/boba/"><img src="https://img.shields.io/badge/Command%20Ref-6B2DAD" alt="Command Reference"></a>
+    <a href="https://github.com/btwiuse/boba/tags"><img src="https://img.shields.io/github/tag/btwiuse/boba.svg" alt="Latest Release"></a>
+    <a href="https://pkg.go.dev/github.com/btwiuse/boba?tab=doc"><img src="https://pkg.go.dev/badge/github.com/btwiuse/boba?utm_source=godoc" alt="GoDoc"></a>
+    <a href="https://github.com/btwiuse/boba/blob/main/CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg"  alt="Code Of Conduct"></a>
 </p>
 
-`go-booba` is a Golang module that facilitates embedding [BubbleTea](https://github.com/charmbracelet/bubbletea) Terminal User Interfaces (TUIs) into a Web Browser, served over HTTP with a Ghostty-powered terminal frontend.
+`boba` is a Golang module that facilitates embedding [BubbleTea](https://github.com/charmbracelet/bubbletea) Terminal User Interfaces (TUIs) into a Web Browser, served over HTTP with a Ghostty-powered terminal frontend.
 
 <p>
   <table>
@@ -17,7 +17,7 @@
 <ul>
  <li>Compile a BubbleTea program to WebAssembly and run it entirely in the browser.</li>
  <li>Run a BubbleTea backend server and connect to it from the browser over WebSocket or WebTransport.</li>
- <li>Wrap any local CLI program in a browser terminal with the `booba` command.</li>
+ <li>Wrap any local CLI program in a browser terminal with the `boba` command.</li>
 </ul>
     </td>
     <td ><img src="./etc/booba.png" alt="booba mascot" width="256"></td>
@@ -32,13 +32,13 @@
 **Go** (server-side library and CLI tools):
 
 ```sh
-go get github.com/NimbleMarkets/go-booba
+go get github.com/btwiuse/boba
 ```
 
 **npm** (TypeScript/JavaScript frontend):
 
 ```sh
-npm install @nimblemarkets/booba
+npm install @btwiuse/boba
 ```
 
 ## How and What?
@@ -51,26 +51,26 @@ The primary enabling technologies of this are:
  * [`WebAssembly`](https://webassembly.org) - For running Go code in browsers
  * [`WebTransport`](https://developer.mozilla.org/en-US/docs/Web/API/WebTransport_API) - HTTP/3-based low-latency browser transport (with WebSocket fallback)
 
-The name `booba` is a portmanteau of the words *Boba* and *Boo!*: the [key ingredient of Bubble Tea](https://github.com/charmbracelet/bubbletea#bubble-tea) evoking a [Ghost's exclamation of joy](https://ghostty.org).
+The name `boba` is a portmanteau of the words *Boba* and *Boo!*: the [key ingredient of Bubble Tea](https://github.com/charmbracelet/bubbletea#bubble-tea) evoking a [Ghost's exclamation of joy](https://ghostty.org).
 
 ## TypeScript API
 
-The `BoobaTerminal` class wraps ghostty-web's Terminal and provides a high-level API for embedding BubbleTea programs:
+The `BobaTerminal` class wraps ghostty-web's Terminal and provides a high-level API for embedding BubbleTea programs:
 
 ```javascript
-import { BoobaTerminal } from './booba/booba.js';
+import { BobaTerminal } from './boba/boba.js';
 
-const booba = new BoobaTerminal('terminal-container', {
+const boba = new BobaTerminal('terminal-container', {
     cols: 80, rows: 24, fontSize: 14,
     theme: { background: '#1e1e1e', foreground: '#d4d4d4' },
 });
 
-await booba.init();
-booba.connectWebSocket('ws://localhost:8080/ws');
-booba.focus();
+await boba.init();
+boba.connectWebSocket('ws://localhost:8080/ws');
+boba.focus();
 ```
 
-`BoobaTerminal` exposes methods for selection, scrollback, terminal control, mode queries, events, link detection, and custom key/wheel handlers. See [docs/TYPESCRIPT_API.md](./docs/TYPESCRIPT_API.md) for the full reference.
+`BobaTerminal` exposes methods for selection, scrollback, terminal control, mode queries, events, link detection, and custom key/wheel handlers. See [docs/TYPESCRIPT_API.md](./docs/TYPESCRIPT_API.md) for the full reference.
 
 For adapter usage (WebSocket, WASM, custom), see [ADAPTER_USAGE.md](./ADAPTER_USAGE.md).
 
@@ -80,7 +80,7 @@ We can take entire BubbleTea applications and embed them into a Web Browser. The
 
 ### Quickstart
 
-The top-level `booba.Run` picks the right runtime for the build target, so a single `main.go` works for both the native terminal and the browser:
+The top-level `boba.Run` picks the right runtime for the build target, so a single `main.go` works for both the native terminal and the browser:
 
 ```go
 package main
@@ -88,34 +88,34 @@ package main
 import (
     "log"
 
-    booba "github.com/NimbleMarkets/go-booba"
+    boba "github.com/btwiuse/boba"
 )
 
 func main() {
-    if err := booba.Run(initialModel()); err != nil {
+    if err := boba.Run(initialModel()); err != nil {
         log.Fatal(err)
     }
 }
 ```
 
-For easier porting from Bubble Tea — or when you need the program handle for `Send`, `Quit`, etc. — use `booba.NewProgram`:
+For easier porting from Bubble Tea — or when you need the program handle for `Send`, `Quit`, etc. — use `boba.NewProgram`:
 
 ```go
 func main() {
-    bp := booba.NewProgram(initialModel())
+    bp := boba.NewProgram(initialModel())
     if _, err := bp.Run(); err != nil {
         log.Fatal(err)
     }
 }
 ```
 
-Build and run natively with `go run ./cmd/myapp`. Build for the browser with `go run github.com/NimbleMarkets/go-booba/cmd/booba-wasm-build -o web/app.wasm ./cmd/myapp/`.
+Build and run natively with `go run ./cmd/myapp`. Build for the browser with `go run github.com/btwiuse/boba/cmd/boba-wasm-build -o web/app.wasm ./cmd/myapp/`.
 
 For finer control, the [`wasm`](./wasm) subpackage exposes the browser bridge directly, and native code can construct a `tea.Program` the usual way.
 
 ## Web Frontend for BubbleTea-based service
 
-Otherwise, one might have a BubbleTea program running on a remote machine. While one might use `ssh` to access it, `booba` enables an HTTP-based interface to it. The top-level `serve` package is the single server implementation for that path, serving the embedded Ghostty frontend and bridging browser clients over WebSocket or WebTransport.
+Otherwise, one might have a BubbleTea program running on a remote machine. While one might use `ssh` to access it, `boba` enables an HTTP-based interface to it. The top-level `serve` package is the single server implementation for that path, serving the embedded Ghostty frontend and bridging browser clients over WebSocket or WebTransport.
 
 ### Middleware
 
@@ -158,30 +158,30 @@ Beyond the listener/TLS/auth fields, `serve.Config` exposes protocol-safety knob
 
 See `docs/DESIGN_MIDDLEWARE.md` for the design rationale.
 
-## `booba` CLI Command Wrapper
+## `boba` CLI Command Wrapper
 
-The `booba` command wraps any local CLI program and serves it in the browser through the same embedded terminal stack.
+The `boba` command wraps any local CLI program and serves it in the browser through the same embedded terminal stack.
 
 Build and run it from the repository root:
 
 ```sh
-task build-cmd-booba
-./bin/booba --listen 127.0.0.1:8080 -- htop
+task build-cmd-boba
+./bin/boba --listen 127.0.0.1:8080 -- htop
 ```
 
 Everything after `--` is treated as the wrapped command and its arguments:
 
 ```sh
-./bin/booba --listen 127.0.0.1:8080 -- bash
-./bin/booba --listen 127.0.0.1:8080 -- python3 -q
-./bin/booba --listen 127.0.0.1:8080 -- vim README.md
+./bin/boba --listen 127.0.0.1:8080 -- bash
+./bin/boba --listen 127.0.0.1:8080 -- python3 -q
+./bin/boba --listen 127.0.0.1:8080 -- vim README.md
 ```
 
 Build and run the example server from the repository root:
 
 ```sh
-task build-cmd-booba-view-example-native
-./bin/booba-view-example --listen 127.0.0.1:8080
+task build-cmd-boba-view-example-native
+./bin/boba-view-example --listen 127.0.0.1:8080
 ```
 
 The browser page served from `http://127.0.0.1:8080/` will use WebTransport automatically when available and fall back to WebSocket otherwise. When you provide `--cert-file` and `--key-file`, the same public port is used for HTTPS/WSS over TCP and HTTP/3 WebTransport over UDP.
@@ -189,12 +189,12 @@ The browser page served from `http://127.0.0.1:8080/` will use WebTransport auto
 ### Useful flags
 
 ```sh
-./bin/booba-view-example --listen 127.0.0.1:8080 --http3-port=-1
-./bin/booba-view-example --listen 127.0.0.1:8080 --origin=https://app.example.com,https://*.example.net
-./bin/booba-view-example --listen 127.0.0.1:8080 --cert-file=server.crt --key-file=server.key
-./bin/booba-view-example --listen 127.0.0.1:8080 --username=admin --password=secret
-./bin/booba-view-example --listen 127.0.0.1:8080 --username=admin --password-file=/run/secrets/booba
-BOOBA_PASSWORD=secret ./bin/booba-view-example --listen 127.0.0.1:8080 --username=admin
+./bin/boba-view-example --listen 127.0.0.1:8080 --http3-port=-1
+./bin/boba-view-example --listen 127.0.0.1:8080 --origin=https://app.example.com,https://*.example.net
+./bin/boba-view-example --listen 127.0.0.1:8080 --cert-file=server.crt --key-file=server.key
+./bin/boba-view-example --listen 127.0.0.1:8080 --username=admin --password=secret
+./bin/boba-view-example --listen 127.0.0.1:8080 --username=admin --password-file=/run/secrets/boba
+BOBA_PASSWORD=secret ./bin/boba-view-example --listen 127.0.0.1:8080 --username=admin
 ```
 
 Notes:
@@ -203,26 +203,26 @@ Notes:
  * the default bind address is loopback (`127.0.0.1`); non-loopback `--listen` addresses require `--cert-file` and `--key-file`.
  * browser origins are same-host by default; use `--origin` to allow additional cross-origin browser clients. Patterns are Go [`path.Match`](https://pkg.go.dev/path#Match) shell globs, **not** regex — so `*.example.com` matches one subdomain level, and `[abc]` is a character class. Patterns are tested against both `scheme://host` and the bare host.
  * Basic Auth requires `--cert-file` and `--key-file`; the server refuses to start otherwise.
- * prefer `--password-file` or `$BOOBA_PASSWORD` over `--password`: the flag form leaks the secret into argv, shell history, and `ps` listings. Precedence is flag > file > env.
+ * prefer `--password-file` or `$BOBA_PASSWORD` over `--password`: the flag form leaks the secret into argv, shell history, and `ps` listings. Precedence is flag > file > env.
  * static frontend files are embedded with `go:embed`, so after frontend asset changes you must rebuild the Go binary you run.
- * reverse-proxy deployment: booba's `index.html` resolves every endpoint against `document.baseURI`, so hosting at a non-root path (e.g. nginx `location /terminal/`) works as long as the proxy **strips the prefix** before forwarding. For custom frontends, use the exported `resolveBoobaURLs(document.baseURI)` helper from `@nimblemarkets/booba`.
+ * reverse-proxy deployment: boba's `index.html` resolves every endpoint against `document.baseURI`, so hosting at a non-root path (e.g. nginx `location /terminal/`) works as long as the proxy **strips the prefix** before forwarding. For custom frontends, use the exported `resolveBobaURLs(document.baseURI)` helper from `@btwiuse/boba`.
 
-## `booba-sip-client`
+## `boba-sip-client`
 
-The `booba-sip-client` command connects to a running `booba` server and provides an interactive terminal session or dump-frames mode for diagnostics. The name comes from [sip](https://github.com/Gaurav-Gosain/sip), a tool by [@Gaurav-Gosain](https://github.com/Gaurav-Gosain) that pioneered a similar wire protocol; `go-booba` adopted and extended that protocol.
+The `boba-sip-client` command connects to a running `boba` server and provides an interactive terminal session or dump-frames mode for diagnostics. The name comes from [sip](https://github.com/Gaurav-Gosain/sip), a tool by [@Gaurav-Gosain](https://github.com/Gaurav-Gosain) that pioneered a similar wire protocol; `boba` adopted and extended that protocol.
 
 Build and run it:
 
 ```sh
-task build-cmd-booba-sip-client
-./bin/booba-sip-client ws://localhost:8080/ws
+task build-cmd-boba-sip-client
+./bin/boba-sip-client ws://localhost:8080/ws
 ```
 
 ### WebTransport
 
-`booba-sip-client` can dial servers over WebTransport by using an `https://` URL:
+`boba-sip-client` can dial servers over WebTransport by using an `https://` URL:
 
-    booba-sip-client https://host:8443/wt
+    boba-sip-client https://host:8443/wt
 
 WebTransport uses HTTP/3 over QUIC and offers lower head-of-line-blocking latency than WebSocket. Requires the server to have HTTP/3 enabled (`serve.DefaultConfig()` enables it automatically; set `HTTP3Port: -1` to disable). For self-signed dev certs, use `--insecure-skip-verify`.
 
@@ -230,8 +230,8 @@ WebTransport uses HTTP/3 over QUIC and offers lower head-of-line-blocking latenc
 
 We welcome contributions and feedback.  Please adhere to our [Code of Conduct](./CODE_OF_CONDUCT.md) when engaging our community.
 
- * [GitHub Issues](https://github.com/NimbleMarkets/go-booba/issues)
- * [GitHub Pull Requests](https://github.com/NimbleMarkets/go-booba/pulls)
+ * [GitHub Issues](https://github.com/btwiuse/boba/issues)
+ * [GitHub Pull Requests](https://github.com/btwiuse/boba/pulls)
 
 ## Acknowledgements
 

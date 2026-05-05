@@ -1,24 +1,24 @@
 /**
- * Booba's BubbleTea Communication Adapter
+ * Boba's BubbleTea Communication Adapter
  * 
  * Provides an abstraction layer for communicating with BubbleTea programs.
  * Supports both WebSocket (backend-server) and WASM (pure embedding) modes.
  */
 
-export type BoobaConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
+export type BobaConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
 
-export interface BoobaAdapter {
+export interface BobaAdapter {
     /**
      * Read output from the BubbleTea program
      * @returns Data from the program, or null if no data available
      */
-    boobaRead(): string | Uint8Array | null;
+    bobaRead(): string | Uint8Array | null;
 
     /**
      * Write input to the BubbleTea program
      * @param data User input to send
      */
-    boobaWrite(data: string | Uint8Array): void;
+    bobaWrite(data: string | Uint8Array): void;
 
     /**
      * Notify the BubbleTea program of a terminal resize
@@ -27,7 +27,7 @@ export interface BoobaAdapter {
      * @param widthPx Optional canvas width in pixels (forwarded to PTY for kitty graphics tools)
      * @param heightPx Optional canvas height in pixels
      */
-    boobaResize(cols: number, rows: number, widthPx?: number, heightPx?: number): void;
+    bobaResize(cols: number, rows: number, widthPx?: number, heightPx?: number): void;
 
     /**
      * Set up the connection and start listening for data
@@ -36,7 +36,7 @@ export interface BoobaAdapter {
      */
     connect(
         onData: (data: string | Uint8Array) => void,
-        onStateChange: (state: BoobaConnectionState, message: string) => void
+        onStateChange: (state: BobaConnectionState, message: string) => void
     ): void;
 
     /**
@@ -49,17 +49,17 @@ export interface BoobaAdapter {
  * WASM-based adapter for pure embedding mode
  * 
  * Communicates with BubbleTea via global WASM functions:
- * - window.booba_write(data: string): void
- * - window.booba_read(): string
- * - window.booba_resize(cols: number, rows: number): void
+ * - window.bubbletea_write(data: string): void
+ * - window.bubbletea_read(): string
+ * - window.bubbletea_resize(cols: number, rows: number): void
  */
-export class BoobaWasmAdapter implements BoobaAdapter {
+export class BobaWasmAdapter implements BobaAdapter {
     private pollInterval: number | null = null;
     private onDataCallback: ((data: string | Uint8Array) => void) | null = null;
 
     constructor(private pollMs: number = 16) { } // ~60fps
 
-    boobaRead(): string | null {
+    bobaRead(): string | null {
         if (typeof (window as any).bubbletea_read !== 'function') {
             console.warn('bubbletea_read not available');
             return null;
@@ -68,7 +68,7 @@ export class BoobaWasmAdapter implements BoobaAdapter {
         return data || null;
     }
 
-    boobaWrite(data: string | Uint8Array): void {
+    bobaWrite(data: string | Uint8Array): void {
         if (typeof (window as any).bubbletea_write !== 'function') {
             console.warn('bubbletea_write not available');
             return;
@@ -77,7 +77,7 @@ export class BoobaWasmAdapter implements BoobaAdapter {
         (window as any).bubbletea_write(dataStr);
     }
 
-    boobaResize(cols: number, rows: number, _widthPx?: number, _heightPx?: number): void {
+    bobaResize(cols: number, rows: number, _widthPx?: number, _heightPx?: number): void {
         if (typeof (window as any).bubbletea_resize !== 'function') {
             console.warn('bubbletea_resize not available');
             return;
@@ -88,13 +88,13 @@ export class BoobaWasmAdapter implements BoobaAdapter {
 
     connect(
         onData: (data: string | Uint8Array) => void,
-        onStateChange: (state: BoobaConnectionState, message: string) => void
+        onStateChange: (state: BobaConnectionState, message: string) => void
     ): void {
         this.onDataCallback = onData;
 
         const startPolling = () => {
             this.pollInterval = window.setInterval(() => {
-                const data = this.boobaRead();
+                const data = this.bobaRead();
                 if (data && data.length > 0 && this.onDataCallback) {
                     this.onDataCallback(data);
                 }

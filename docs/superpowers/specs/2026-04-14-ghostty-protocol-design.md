@@ -1,12 +1,12 @@
-# Booba Protocol v2: Ghostty-Centric Terminal Protocol
+# Boba Protocol v2: Ghostty-Centric Terminal Protocol
 
 ## Goal
 
-Replace booba's current ad-hoc binary protocol with a Sip-compatible terminal protocol that uses real PTYs, supports WebSocket and WebTransport, and is designed around ghostty-web as the terminal frontend. This enables both BubbleTea library mode and CLI command mode (wrapping arbitrary programs like `htop`, `vim`, `bash`).
+Replace boba's current ad-hoc binary protocol with a Sip-compatible terminal protocol that uses real PTYs, supports WebSocket and WebTransport, and is designed around ghostty-web as the terminal frontend. This enables both BubbleTea library mode and CLI command mode (wrapping arbitrary programs like `htop`, `vim`, `bash`).
 
 ## Design Principles
 
-- **Sip-compatible**: Message types `'0'`-`'7'` match Sip's wire format exactly. A booba ghostty-web frontend can connect to a Sip server, and a Sip xterm.js frontend can connect to a booba server (minus Ghostty-specific extensions). Booba does not depend on the `sip` Go module — it implements the protocol independently, inspired by Sip's design but using its own WebSocket/WebTransport handlers, PTY management, and static asset serving.
+- **Sip-compatible**: Message types `'0'`-`'7'` match Sip's wire format exactly. A boba ghostty-web frontend can connect to a Sip server, and a Sip xterm.js frontend can connect to a boba server (minus Ghostty-specific extensions). Boba does not depend on the `sip` Go module — it implements the protocol independently, inspired by Sip's design but using its own WebSocket/WebTransport handlers, PTY management, and static asset serving.
 - **Ghostty-native**: Sets `TERM=ghostty` on PTYs and leverages Ghostty's native capabilities (Kitty keyboard protocol, OSC 8 hyperlinks) via standard terminal escape sequence negotiation — not custom protocol messages.
 - **PTY-based**: Every session gets a real pseudo-terminal, eliminating the need for LNM hacks, TERM workarounds, and newline mapping fixes.
 - **Transport-agnostic**: Same protocol over WebSocket and WebTransport, with auto-detection and fallback.
@@ -115,11 +115,11 @@ On unexpected disconnect, the client reconnects with exponential backoff:
 
 **BubbleTea mode (library):**
 ```go
-server := booba.NewServer(booba.Config{
+server := boba.NewServer(boba.Config{
     Host: "0.0.0.0",
     Port: 8080,
 })
-server.Serve(func(session booba.Session) tea.Model {
+server.Serve(func(session boba.Session) tea.Model {
     return myModel{width: session.WindowSize().Cols}
 })
 ```
@@ -133,7 +133,7 @@ server.ServeCommand("htop", "--delay=10")
 
 Or from the command line:
 ```bash
-booba serve -- htop --delay=10
+boba serve -- htop --delay=10
 ```
 
 Each connection spawns the command in its own PTY. Process lifecycle is tied to the WebSocket/WebTransport connection.
@@ -178,7 +178,7 @@ All frontend assets (ghostty-web WASM, JS, HTML, CSS) are embedded via `go:embed
 
 The adapter layer is replaced with two new implementations:
 
-**`BoobaProtocolAdapter`** (WebSocket):
+**`BobaProtocolAdapter`** (WebSocket):
 - Speaks `'0'`-`'8'` message protocol
 - Manages ping/pong keepalive
 - Handles reconnection with exponential backoff
@@ -189,22 +189,22 @@ The adapter layer is replaced with two new implementations:
 - Requires TLS certificate hash from `/cert-hash`
 - Falls back to WebSocket on failure
 
-**`BoobaAutoAdapter`** (default):
+**`BobaAutoAdapter`** (default):
 - Tries WebTransport first, falls back to WebSocket
-- Transparent to the `BoobaTerminal` consumer
+- Transparent to the `BobaTerminal` consumer
 
 ### OSC 52 Clipboard Support
 
 When the backend program sends an OSC 52 sequence (`\x1b]52;c;<base64-data>\a`), ghostty-web's VT parser processes it. The client hooks into the terminal's output to detect OSC 52 and calls `navigator.clipboard.writeText()` with the decoded payload.
 
-For paste (clipboard read), the existing `BoobaTerminal.paste()` method and bracketed paste handling remain unchanged — the user pastes via Cmd+V / Ctrl+V, which flows through ghostty-web's input handler as regular input.
+For paste (clipboard read), the existing `BobaTerminal.paste()` method and bracketed paste handling remain unchanged — the user pastes via Cmd+V / Ctrl+V, which flows through ghostty-web's input handler as regular input.
 
 ### Connection Status
 
 The existing `onStatusChange` callback gains a new state:
 
 ```typescript
-type BoobaConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
+type BobaConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
 ```
 
 ## Capability Negotiation
@@ -224,8 +224,8 @@ The `'8'` (KittyKbd) message is sent by the client to keep the server informed o
 
 ### With Sip
 
-- A booba client connecting to a Sip server: works for `'0'`-`'7'` messages. `'8'` messages are silently ignored by Sip. Terminal renders with ghostty-web instead of xterm.js.
-- A Sip client connecting to a booba server: works for `'0'`-`'7'` messages. xterm.js won't enable Kitty keyboard protocol, so `'8'` is never sent. Terminal renders with xterm.js instead of ghostty-web.
+- A boba client connecting to a Sip server: works for `'0'`-`'7'` messages. `'8'` messages are silently ignored by Sip. Terminal renders with ghostty-web instead of xterm.js.
+- A Sip client connecting to a boba server: works for `'0'`-`'7'` messages. xterm.js won't enable Kitty keyboard protocol, so `'8'` is never sent. Terminal renders with xterm.js instead of ghostty-web.
 
 ### TERM Considerations
 
@@ -247,13 +247,13 @@ If `TERM=ghostty` terminfo is not installed on the system, the server falls back
 | `ts/adapter.ts` | Protocol adapter (WebSocket), reconnection logic |
 | `ts/webtransport.ts` | WebTransport adapter with length-prefixed framing |
 | `ts/auto.ts` | Auto-detecting adapter (WebTransport → WebSocket fallback) |
-| `ts/booba.ts` | BoobaTerminal (mostly unchanged, uses new adapters) |
+| `ts/boba.ts` | BobaTerminal (mostly unchanged, uses new adapters) |
 | `ts/clipboard.ts` | OSC 52 clipboard handler |
 
 ## Out of Scope
 
 - **Windows support**: PTY implementation is Unix-only (master/slave fd pair). Windows ConPty support (like Sip's `session_windows.go`) can be added later.
-- **WASM mode**: The `BoobaWasmAdapter` communicates via global JS functions (`bubbletea_write`/`bubbletea_read`), not WebSocket. It is unaffected by this protocol change and continues to work as-is.
+- **WASM mode**: The `BobaWasmAdapter` communicates via global JS functions (`bubbletea_write`/`bubbletea_read`), not WebSocket. It is unaffected by this protocol change and continues to work as-is.
 - **Sixel / Kitty graphics**: ghostty-web doesn't support image protocols.
 - **Session recording / playback**
 - **Authentication / access control**
@@ -261,6 +261,6 @@ If `TERM=ghostty` terminfo is not installed on the system, the server falls back
 
 ## Migration from Current Protocol
 
-The current `0x01`/`0x02` binary protocol, `BoobaWebSocketAdapter`, `BoobaWasmAdapter`, and `booba_server` package are replaced entirely. The WASM adapter is unaffected by the protocol change (it uses a different communication mechanism via global JS functions).
+The current `0x01`/`0x02` binary protocol, `BobaWebSocketAdapter`, `BobaWasmAdapter`, and `boba_server` package are replaced entirely. The WASM adapter is unaffected by the protocol change (it uses a different communication mechanism via global JS functions).
 
-The `internal/booba_server/` package is superseded by the new top-level server architecture. The LNM hack (`\x1b[20h`), manual TERM setting, and `waitForInitialSize` workaround are all eliminated by using real PTYs.
+The `internal/boba_server/` package is superseded by the new top-level server architecture. The LNM hack (`\x1b[20h`), manual TERM setting, and `waitForInitialSize` workaround are all eliminated by using real PTYs.

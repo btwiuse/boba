@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { BoobaProtocolAdapter } from './websocket_adapter.js';
+import { BobaProtocolAdapter } from './websocket_adapter.js';
 import { MsgClose, encodeWSMessage } from './protocol.js';
 
 // --- Minimal WebSocket mock -------------------------------------------------
@@ -50,7 +50,7 @@ class MockWebSocket {
     }
 }
 
-describe('BoobaProtocolAdapter reconnection backoff', () => {
+describe('BobaProtocolAdapter reconnection backoff', () => {
     beforeEach(() => {
         MockWebSocket.instances = [];
         vi.useFakeTimers();
@@ -66,7 +66,7 @@ describe('BoobaProtocolAdapter reconnection backoff', () => {
     });
 
     it('schedules reconnect attempts with exponential backoff (1000 * 1.5^(n-1))', () => {
-        const adapter = new BoobaProtocolAdapter('ws://example/ws');
+        const adapter = new BobaProtocolAdapter('ws://example/ws');
         const states: Array<[string, string]> = [];
         adapter.connect(
             () => {},
@@ -104,7 +104,7 @@ describe('BoobaProtocolAdapter reconnection backoff', () => {
     });
 
     it('resets the backoff counter after a successful reconnection', () => {
-        const adapter = new BoobaProtocolAdapter('ws://example/ws');
+        const adapter = new BobaProtocolAdapter('ws://example/ws');
         adapter.connect(() => {}, () => {});
 
         // Disconnect → reconnect at 1000ms → reopen → another disconnect
@@ -126,7 +126,7 @@ describe('BoobaProtocolAdapter reconnection backoff', () => {
     });
 
     it('does not reconnect after receiving a MsgClose from the server', () => {
-        const adapter = new BoobaProtocolAdapter('ws://example/ws');
+        const adapter = new BobaProtocolAdapter('ws://example/ws');
         adapter.connect(() => {}, () => {});
 
         const ws = MockWebSocket.instances[0];
@@ -140,7 +140,7 @@ describe('BoobaProtocolAdapter reconnection backoff', () => {
     });
 
     it('stops scheduled reconnects when disconnect() is called', () => {
-        const adapter = new BoobaProtocolAdapter('ws://example/ws');
+        const adapter = new BobaProtocolAdapter('ws://example/ws');
         adapter.connect(() => {}, () => {});
 
         // Drop the first connection so a reconnect is scheduled…

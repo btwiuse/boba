@@ -1,5 +1,5 @@
 import { MsgInput, MsgOutput, MsgResize, MsgPing, MsgPong, MsgTitle, MsgOptions, MsgClose, encodeWSMessage, decodeWSMessage, jsonPayload, parseJsonPayload, } from './protocol.js';
-export class BoobaProtocolAdapter {
+export class BobaProtocolAdapter {
     constructor(url, callbacks = {}) {
         this.url = url;
         this.ws = null;
@@ -13,16 +13,16 @@ export class BoobaProtocolAdapter {
         this.shouldReconnect = true;
         this.callbacks = callbacks;
     }
-    boobaRead() {
+    bobaRead() {
         return null;
     }
-    boobaWrite(data) {
+    bobaWrite(data) {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN)
             return;
         const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
         this.ws.send(encodeWSMessage(MsgInput, bytes));
     }
-    boobaResize(cols, rows, widthPx, heightPx) {
+    bobaResize(cols, rows, widthPx, heightPx) {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN)
             return;
         const msg = { cols, rows };

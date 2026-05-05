@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace booba's ad-hoc binary protocol with a Sip-compatible terminal protocol using real PTYs, WebSocket + WebTransport, and ghostty-web as the terminal frontend.
+**Goal:** Replace boba's ad-hoc binary protocol with a Sip-compatible terminal protocol using real PTYs, WebSocket + WebTransport, and ghostty-web as the terminal frontend.
 
 **Architecture:** The Go server creates a Unix PTY per connection, bridges I/O to WebSocket/WebTransport using the `'0'`-`'8'` message protocol, and embeds ghostty-web static assets via `go:embed`. The TypeScript client speaks the same protocol with auto-detection of WebTransport → WebSocket fallback and exponential backoff reconnection.
 
@@ -39,15 +39,15 @@
 | `ts/webtransport_adapter.ts` | WebTransport adapter with length-prefixed framing |
 | `ts/auto_adapter.ts` | Auto-detecting adapter (WT → WS fallback) |
 | `ts/clipboard.ts` | OSC 52 clipboard write handler |
-| `ts/adapter.ts` | Modify: keep BoobaAdapter interface + BoobaWasmAdapter, remove BoobaWebSocketAdapter |
-| `ts/booba.ts` | Modify: use new auto adapter, add reconnecting state, wire OSC 52 |
+| `ts/adapter.ts` | Modify: keep BobaAdapter interface + BobaWasmAdapter, remove BoobaWebSocketAdapter |
+| `ts/boba.ts` | Modify: use new auto adapter, add reconnecting state, wire OSC 52 |
 
 ### Static assets for `go:embed`
 
 | File | Responsibility |
 |------|----------------|
 | `serve/static/index.html` | Embedded HTML page (replaces `assets/index.html` for serve mode) |
-| `serve/static/booba/` | Compiled TypeScript + ghostty-web assets (copied at build time) |
+| `serve/static/boba/` | Compiled TypeScript + ghostty-web assets (copied at build time) |
 
 ### Updated existing files
 
@@ -55,7 +55,7 @@
 |------|--------|
 | `go.mod` | Add `coder/websocket`, `quic-go/webtransport-go`, `charmbracelet/x/xpty` |
 | `Taskfile.yml` | Add build task for `serve/static/` asset embedding |
-| `cmd/booba-view-example/booba-view-example.go` | Update to use `serve` package |
+| `cmd/boba-view-example/boba-view-example.go` | Update to use `serve` package |
 
 ---
 
@@ -1276,7 +1276,7 @@ git commit -m "feat(serve): add HTTP server with WebSocket endpoint and static f
 
 ```typescript
 /**
- * Booba Protocol v2 — Sip-compatible message encoding/decoding.
+ * Boba Protocol v2 — Sip-compatible message encoding/decoding.
  *
  * Wire format (WebSocket):  [type_byte][payload...]
  * Wire format (WebTransport): [4-byte big-endian length][type_byte][payload...]
@@ -1365,15 +1365,15 @@ git commit -m "feat(ts): add protocol v2 message encoding/decoding"
 
 **Files:**
 - Create: `ts/websocket_adapter.ts`
-- Modify: `ts/adapter.ts` — remove `BoobaWebSocketAdapter`, keep `BoobaAdapter` interface and `BoobaWasmAdapter`
+- Modify: `ts/adapter.ts` — remove `BoobaWebSocketAdapter`, keep `BobaAdapter` interface and `BobaWasmAdapter`
 
 - [ ] **Step 1: Create ts/websocket_adapter.ts**
 
 ```typescript
 /**
- * WebSocket adapter speaking the Booba/Sip protocol ('0'-'8' message types).
+ * WebSocket adapter speaking the Boba/Sip protocol ('0'-'8' message types).
  */
-import { BoobaAdapter, BoobaConnectionState } from './adapter.js';
+import { BobaAdapter, BobaConnectionState } from './adapter.js';
 import {
     MsgInput, MsgOutput, MsgResize, MsgPing, MsgPong,
     MsgTitle, MsgOptions, MsgClose, MsgKittyKbd,
@@ -1387,7 +1387,7 @@ export interface WebSocketAdapterCallbacks {
     onClose?: (reason: string) => void;
 }
 
-export class BoobaProtocolAdapter implements BoobaAdapter {
+export class BobaProtocolAdapter implements BobaAdapter {
     private ws: WebSocket | null = null;
     private onDataCallback: ((data: string | Uint8Array) => void) | null = null;
     private pingInterval: number | null = null;
@@ -1395,7 +1395,7 @@ export class BoobaProtocolAdapter implements BoobaAdapter {
     private maxReconnectAttempts = 5;
     private reconnectBaseDelay = 1000;
     private reconnectMultiplier = 1.5;
-    private onStateChangeCallback: ((state: BoobaConnectionState, message: string) => void) | null = null;
+    private onStateChangeCallback: ((state: BobaConnectionState, message: string) => void) | null = null;
     private callbacks: WebSocketAdapterCallbacks;
     private shouldReconnect = true;
 
@@ -1403,17 +1403,17 @@ export class BoobaProtocolAdapter implements BoobaAdapter {
         this.callbacks = callbacks;
     }
 
-    boobaRead(): string | Uint8Array | null {
+    bobaRead(): string | Uint8Array | null {
         return null; // Push-based
     }
 
-    boobaWrite(data: string | Uint8Array): void {
+    bobaWrite(data: string | Uint8Array): void {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
         const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
         this.ws.send(encodeWSMessage(MsgInput, bytes));
     }
 
-    boobaResize(cols: number, rows: number): void {
+    bobaResize(cols: number, rows: number): void {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
         const payload = jsonPayload({ cols, rows } as ResizeMessage);
         this.ws.send(encodeWSMessage(MsgResize, payload));
@@ -1421,7 +1421,7 @@ export class BoobaProtocolAdapter implements BoobaAdapter {
 
     connect(
         onData: (data: string | Uint8Array) => void,
-        onStateChange: (state: BoobaConnectionState, message: string) => void
+        onStateChange: (state: BobaConnectionState, message: string) => void
     ): void {
         this.onDataCallback = onData;
         this.onStateChangeCallback = onStateChange;
@@ -1519,10 +1519,10 @@ export class BoobaProtocolAdapter implements BoobaAdapter {
 
 - [ ] **Step 2: Modify ts/adapter.ts — remove BoobaWebSocketAdapter**
 
-Remove the `BoobaWebSocketAdapter` class entirely from `ts/adapter.ts`. Keep the `BoobaAdapter` interface, `BoobaConnectionState` type, and `BoobaWasmAdapter` class. Update the connection state type:
+Remove the `BoobaWebSocketAdapter` class entirely from `ts/adapter.ts`. Keep the `BobaAdapter` interface, `BobaConnectionState` type, and `BobaWasmAdapter` class. Update the connection state type:
 
 ```typescript
-export type BoobaConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
+export type BobaConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
 ```
 
 - [ ] **Step 3: Verify TypeScript compiles**
@@ -1581,7 +1581,7 @@ export function installOSC52Handler(term: any): () => void {
     // this scanner before calling term.write().
 
     // This is a no-op placeholder. The actual integration happens
-    // in booba.ts where we intercept the adapter's onData callback.
+    // in boba.ts where we intercept the adapter's onData callback.
     return () => {};
 }
 
@@ -1669,21 +1669,21 @@ git commit -m "feat(ts): add OSC 52 clipboard write handler"
 
 ---
 
-## Task 11: Update BoobaTerminal to Use New Protocol (TypeScript)
+## Task 11: Update BobaTerminal to Use New Protocol (TypeScript)
 
 **Files:**
-- Modify: `ts/booba.ts`
+- Modify: `ts/boba.ts`
 
-- [ ] **Step 1: Update imports and adapter wiring in booba.ts**
+- [ ] **Step 1: Update imports and adapter wiring in boba.ts**
 
-Replace the import of `BoobaWebSocketAdapter` with the new protocol adapter. Update `connectWebSocket` to use `BoobaProtocolAdapter`. Wire up OSC 52 scanner. Add `connectAuto` method.
+Replace the import of `BoobaWebSocketAdapter` with the new protocol adapter. Update `connectWebSocket` to use `BobaProtocolAdapter`. Wire up OSC 52 scanner. Add `connectAuto` method.
 
-Key changes to `ts/booba.ts`:
+Key changes to `ts/boba.ts`:
 
 1. Update imports:
 ```typescript
-import { BoobaAdapter, BoobaConnectionState, BoobaWasmAdapter } from './adapter.js';
-import { BoobaProtocolAdapter, type WebSocketAdapterCallbacks } from './websocket_adapter.js';
+import { BobaAdapter, BobaConnectionState, BobaWasmAdapter } from './adapter.js';
+import { BobaProtocolAdapter, type WebSocketAdapterCallbacks } from './websocket_adapter.js';
 import { OSC52Scanner } from './clipboard.js';
 ```
 
@@ -1702,7 +1702,7 @@ connectWebSocket(url: string) {
             this.term?.write(`\r\n${reason}\r\n`);
         },
     };
-    this.adapter = new BoobaProtocolAdapter(url, callbacks);
+    this.adapter = new BobaProtocolAdapter(url, callbacks);
     this._setupAdapter();
 }
 ```
@@ -1719,10 +1719,10 @@ private _setupAdapter() {
             }
             this.term.write(data);
         },
-        (state: BoobaConnectionState, message: string) => {
+        (state: BobaConnectionState, message: string) => {
             this._updateStatus(state, message);
             if (state === 'connected' && this.term) {
-                this.adapter?.boobaResize(this.term.cols, this.term.rows);
+                this.adapter?.bobaResize(this.term.cols, this.term.rows);
             }
             if (state === 'disconnected') {
                 this.term.write('\r\nConnection closed.\r\n');
@@ -1734,8 +1734,8 @@ private _setupAdapter() {
 
 5. Update re-exports at bottom:
 ```typescript
-export { BoobaAdapter, BoobaWasmAdapter, BoobaConnectionState };
-export { BoobaProtocolAdapter } from './websocket_adapter.js';
+export { BobaAdapter, BobaWasmAdapter, BobaConnectionState };
+export { BobaProtocolAdapter } from './websocket_adapter.js';
 export { OSC52Scanner } from './clipboard.js';
 ```
 
@@ -1747,8 +1747,8 @@ Expected: No errors.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add ts/booba.ts
-git commit -m "feat(ts): wire BoobaTerminal to protocol v2 adapter with OSC 52"
+git add ts/boba.ts
+git commit -m "feat(ts): wire BobaTerminal to protocol v2 adapter with OSC 52"
 ```
 
 ---
@@ -1761,7 +1761,7 @@ git commit -m "feat(ts): wire BoobaTerminal to protocol v2 adapter with OSC 52"
 
 - [ ] **Step 1: Create serve/static/index.html**
 
-This is the embedded HTML page served by the Go server. It loads ghostty-web and the compiled booba TypeScript from `/static/`.
+This is the embedded HTML page served by the Go server. It loads ghostty-web and the compiled boba TypeScript from `/static/`.
 
 ```html
 <!DOCTYPE html>
@@ -1769,7 +1769,7 @@ This is the embedded HTML page served by the Go server. It loads ghostty-web and
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>booba</title>
+    <title>boba</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -1814,35 +1814,35 @@ This is the embedded HTML page served by the Go server. It loads ghostty-web and
     <div id="terminal-container"></div>
 
     <script type="module">
-        import { BoobaTerminal } from './booba/booba.js';
+        import { BobaTerminal } from './boba/boba.js';
 
         const dot = document.getElementById('status-dot');
         const text = document.getElementById('status-text');
 
         async function main() {
-            const booba = new BoobaTerminal('terminal-container');
+            const boba = new BobaTerminal('terminal-container');
 
-            booba.onStatusChange = (state, message) => {
+            boba.onStatusChange = (state, message) => {
                 dot.className = `status-dot ${state}`;
                 text.textContent = message;
             };
 
-            booba.onTitleChange = (title) => {
-                document.title = title || 'booba';
+            boba.onTitleChange = (title) => {
+                document.title = title || 'boba';
             };
 
-            booba.onBell = () => {
+            boba.onBell = () => {
                 const c = document.getElementById('terminal-container');
                 c.style.outline = '2px solid #ffbd2e';
                 setTimeout(() => { c.style.outline = 'none'; }, 150);
             };
 
-            await booba.init();
+            await boba.init();
 
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${window.location.host}/ws`;
-            booba.connectWebSocket(wsUrl);
-            booba.focus();
+            boba.connectWebSocket(wsUrl);
+            boba.focus();
         }
 
         main().catch(console.error);
@@ -1860,15 +1860,15 @@ Add to `Taskfile.yml`:
     desc: 'Copy compiled TS + ghostty-web into serve/static/ for go:embed'
     deps: [build-assets]
     cmds:
-      - mkdir -p serve/static/booba
-      - cp -r assets/booba/* serve/static/booba/
+      - mkdir -p serve/static/boba
+      - cp -r assets/boba/* serve/static/boba/
       - mkdir -p serve/static/ghostty-web
       - cp -r node_modules/ghostty-web/dist/* serve/static/ghostty-web/
     sources:
-      - assets/booba/*.js
+      - assets/boba/*.js
       - node_modules/ghostty-web/dist/*
     generates:
-      - serve/static/booba/*.js
+      - serve/static/boba/*.js
       - serve/static/ghostty-web/*
 ```
 
@@ -1877,7 +1877,7 @@ Update the `build` task deps to include `build-serve-assets`.
 - [ ] **Step 3: Run the build task**
 
 Run: `task build-serve-assets`
-Expected: `serve/static/booba/` and `serve/static/ghostty-web/` populated.
+Expected: `serve/static/boba/` and `serve/static/ghostty-web/` populated.
 
 - [ ] **Step 4: Verify Go embedding compiles**
 
@@ -1888,7 +1888,7 @@ Expected: No errors.
 
 Add to `.gitignore`:
 ```
-serve/static/booba/
+serve/static/boba/
 serve/static/ghostty-web/
 ```
 
@@ -1904,7 +1904,7 @@ git commit -m "feat(serve): add embedded HTML page and build task for static ass
 ## Task 13: Update Example App
 
 **Files:**
-- Modify: `cmd/booba-view-example/booba-view-example.go`
+- Modify: `cmd/boba-view-example/boba-view-example.go`
 
 - [ ] **Step 1: Update the example to use the new serve package**
 
@@ -1935,17 +1935,17 @@ func startWebServer(addr string) {
 }
 ```
 
-Update imports to include `"context"`, `"net"`, `"strconv"`, and `"github.com/NimbleMarkets/go-booba/serve"`. Remove the import of `"github.com/NimbleMarkets/go-booba/internal/booba_server"`.
+Update imports to include `"context"`, `"net"`, `"strconv"`, and `"github.com/btwiuse/boba/serve"`. Remove the import of `"github.com/btwiuse/boba/internal/boba_server"`.
 
 - [ ] **Step 2: Verify it compiles**
 
-Run: `go build ./cmd/booba-view-example/`
+Run: `go build ./cmd/boba-view-example/`
 Expected: No errors.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add cmd/booba-view-example/booba-view-example.go
+git add cmd/boba-view-example/boba-view-example.go
 git commit -m "feat: update example app to use serve package with protocol v2"
 ```
 
@@ -1963,7 +1963,7 @@ Expected: All tasks succeed — TypeScript compiled, assets copied, Go binaries 
 
 - [ ] **Step 2: Run the example**
 
-Run: `./bin/booba-view-example -web :8080`
+Run: `./bin/boba-view-example -web :8080`
 Open: `http://localhost:8080`
 
 Expected:
@@ -2019,7 +2019,7 @@ This is deferred because: (1) WebSocket alone is fully functional, (2) WebTransp
 | 8 | Protocol layer (TS) | `ts/protocol.ts` |
 | 9 | WebSocket adapter (TS) | `ts/websocket_adapter.ts` |
 | 10 | OSC 52 clipboard | `ts/clipboard.ts` |
-| 11 | Wire BoobaTerminal | `ts/booba.ts` |
+| 11 | Wire BobaTerminal | `ts/boba.ts` |
 | 12 | Embedded assets + build | `serve/static/index.html`, Taskfile |
-| 13 | Update example app | `cmd/booba-view-example/` |
+| 13 | Update example app | `cmd/boba-view-example/` |
 | 14 | Integration testing | Manual verification |

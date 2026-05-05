@@ -1,10 +1,10 @@
 /**
- * WebTransport adapter speaking the Booba/Sip protocol with length-prefixed framing.
+ * WebTransport adapter speaking the Boba/Sip protocol with length-prefixed framing.
  *
  * WebTransport uses QUIC for lower latency than WebSocket.
  * Requires TLS — the server provides a /cert-hash endpoint for self-signed cert pinning.
  */
-import { BoobaAdapter, BoobaConnectionState } from './adapter.js';
+import { BobaAdapter, BobaConnectionState } from './adapter.js';
 import {
     MsgInput, MsgOutput, MsgResize, MsgPing, MsgPong,
     MsgTitle, MsgOptions, MsgClose,
@@ -13,11 +13,11 @@ import {
 } from './protocol.js';
 import type { WebSocketAdapterCallbacks } from './websocket_adapter.js';
 
-export class BoobaWebTransportAdapter implements BoobaAdapter {
+export class BobaWebTransportAdapter implements BobaAdapter {
     private transport: WebTransport | null = null;
     private writer: WritableStreamDefaultWriter<Uint8Array> | null = null;
     private onDataCallback: ((data: string | Uint8Array) => void) | null = null;
-    private onStateChangeCallback: ((state: BoobaConnectionState, message: string) => void) | null = null;
+    private onStateChangeCallback: ((state: BobaConnectionState, message: string) => void) | null = null;
     private pingInterval: number | null = null;
     private callbacks: WebSocketAdapterCallbacks;
     private closed = false;
@@ -26,16 +26,16 @@ export class BoobaWebTransportAdapter implements BoobaAdapter {
         this.callbacks = callbacks;
     }
 
-    boobaRead(): string | Uint8Array | null {
+    bobaRead(): string | Uint8Array | null {
         return null;
     }
 
-    boobaWrite(data: string | Uint8Array): void {
+    bobaWrite(data: string | Uint8Array): void {
         const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
         this._write(MsgInput, bytes);
     }
 
-    boobaResize(cols: number, rows: number, widthPx?: number, heightPx?: number): void {
+    bobaResize(cols: number, rows: number, widthPx?: number, heightPx?: number): void {
         const msg: { cols: number; rows: number; widthPx?: number; heightPx?: number } = { cols, rows };
         if (widthPx && widthPx > 0) msg.widthPx = widthPx;
         if (heightPx && heightPx > 0) msg.heightPx = heightPx;
@@ -44,7 +44,7 @@ export class BoobaWebTransportAdapter implements BoobaAdapter {
 
     async connect(
         onData: (data: string | Uint8Array) => void,
-        onStateChange: (state: BoobaConnectionState, message: string) => void
+        onStateChange: (state: BobaConnectionState, message: string) => void
     ): Promise<void> {
         this.onDataCallback = onData;
         this.onStateChangeCallback = onStateChange;
