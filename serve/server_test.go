@@ -28,8 +28,8 @@ func TestCheckOriginAllowsSameHost(t *testing.T) {
 
 func TestCheckOriginAllowsConfiguredPattern(t *testing.T) {
 	srv := NewServer(Config{OriginPatterns: []string{"https://*.example.com"}})
-	req := httptest.NewRequest("GET", "http://booba.test/ws", nil)
-	req.Host = "booba.test"
+	req := httptest.NewRequest("GET", "http://boba.test/ws", nil)
+	req.Host = "boba.test"
 	req.Header.Set("Origin", "https://app.example.com")
 
 	if !srv.checkOrigin(req) {
@@ -77,7 +77,7 @@ func TestHTTPHandlerServesIndexWithoutListener(t *testing.T) {
 }
 
 // SEC-2: /static/ must honor Basic Auth. Fingerprinting via
-// /static/booba/booba.js and /static/ghostty-web/ghostty-web.js
+// /static/boba/boba.js and /static/ghostty-web/ghostty-web.js
 // shouldn't be possible without credentials. We drive these through
 // newMux directly so we don't have to produce real TLS material just
 // to exercise the gating.
@@ -92,12 +92,12 @@ func TestStaticFilesRequireAuthWhenBasicAuthConfigured(t *testing.T) {
 		t.Fatalf("newMux: %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "http://example.com/static/booba/booba.js", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://example.com/static/boba/boba.js", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusUnauthorized {
-		t.Fatalf("unauthenticated GET /static/booba/booba.js status = %d; want 401", rec.Code)
+		t.Fatalf("unauthenticated GET /static/boba/boba.js status = %d; want 401", rec.Code)
 	}
 	if rec.Header().Get("WWW-Authenticate") == "" {
 		t.Error("missing WWW-Authenticate challenge on 401")
@@ -117,13 +117,13 @@ func TestStaticFilesServedWhenAuthPresent(t *testing.T) {
 		t.Fatalf("newMux: %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "http://example.com/static/booba/booba.js", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://example.com/static/boba/boba.js", nil)
 	req.SetBasicAuth("admin", "secret")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf("authenticated GET /static/booba/booba.js status = %d; want 200", rec.Code)
+		t.Fatalf("authenticated GET /static/boba/boba.js status = %d; want 200", rec.Code)
 	}
 	if rec.Body.Len() == 0 {
 		t.Error("authenticated response body is empty")
@@ -137,12 +137,12 @@ func TestStaticFilesOpenWhenBasicAuthNotConfigured(t *testing.T) {
 		t.Fatalf("newMux: %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "http://example.com/static/booba/booba.js", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://example.com/static/boba/boba.js", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf("GET /static/booba/booba.js (no auth configured) status = %d; want 200", rec.Code)
+		t.Fatalf("GET /static/boba/boba.js (no auth configured) status = %d; want 200", rec.Code)
 	}
 }
 

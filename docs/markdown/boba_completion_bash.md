@@ -1,4 +1,4 @@
-## booba completion bash
+## boba completion bash
 
 Generate the autocompletion script for bash
 
@@ -11,23 +11,23 @@ If it is not installed already, you can install it via your OS's package manager
 
 To load completions in your current shell session:
 
-	source <(booba completion bash)
+	source <(boba completion bash)
 
 To load completions for every new session, execute once:
 
 #### Linux:
 
-	booba completion bash > /etc/bash_completion.d/booba
+	boba completion bash > /etc/bash_completion.d/boba
 
 #### macOS:
 
-	booba completion bash > $(brew --prefix)/etc/bash_completion.d/booba
+	boba completion bash > $(brew --prefix)/etc/bash_completion.d/boba
 
 You will need to start a new shell for this setup to take effect.
 
 
 ```
-booba completion bash
+boba completion bash
 ```
 
 ### Options
@@ -39,5 +39,5 @@ booba completion bash
 
 ### SEE ALSO
 
-* [booba completion](booba_completion.md)	 - Generate the autocompletion script for the specified shell
+* [boba completion](boba_completion.md)	 - Generate the autocompletion script for the specified shell
 

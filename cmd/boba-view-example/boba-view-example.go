@@ -1,4 +1,4 @@
-// cmd/booba-view-example/booba-view-example.go
+// cmd/boba-view-example/boba-view-example.go
 // from BubbleTea sample:
 //
 //	https://raw.githubusercontent.com/charmbracelet/bubbletea/refs/tags/v2.0.0-beta.5/examples/views/main.go

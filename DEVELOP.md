@@ -2,25 +2,25 @@
 
 ## Building from Source
 
-booba vendors [`ghostty-web`](https://github.com/NimbleMarkets/ghostty-web) (NimbleMarkets fork) as a git submodule at `third_party/ghostty-web`. Clone with submodules:
+boba vendors [`ghostty-web`](https://github.com/btwiuse/ghostty-web) (btwiuse fork) as a git submodule at `third_party/ghostty-web`. Clone with submodules:
 
 ```sh
-git clone --recurse-submodules https://github.com/NimbleMarkets/go-booba.git
+git clone --recurse-submodules https://github.com/btwiuse/boba.git
 # or after a regular clone:
 git submodule update --init --recursive
 ```
 
-Then `task build` builds everything: the wasm + JS inside the submodule, the booba TypeScript embed, copies the artifacts into `serve/static/` for `go:embed`, and produces `bin/booba`. The build needs `bun` and `zig 0.15.2`; locally `task` will use `nix develop` from `third_party/ghostty-web/flake.nix` if `nix` is on PATH (recommended), otherwise it expects both to be available directly. See `Taskfile.yml:build-ghostty-web`.
+Then `task build` builds everything: the wasm + JS inside the submodule, the boba TypeScript embed, copies the artifacts into `serve/static/` for `go:embed`, and produces `bin/boba`. The build needs `bun` and `zig 0.15.2`; locally `task` will use `nix develop` from `third_party/ghostty-web/flake.nix` if `nix` is on PATH (recommended), otherwise it expects both to be available directly. See `Taskfile.yml:build-ghostty-web`.
 
-The embedded `serve/static/booba/*.js` and `serve/static/ghostty-web/*` files are committed so `go install github.com/NimbleMarkets/go-booba/cmd/booba` works without a JS toolchain. CI rebuilds them on every push and force-commits the result back to the branch (`.github/workflows/rebuild-static.yml`), so the bytes in HEAD are always traceable to a CI run plus the submodule SHA. To verify locally: clone with submodules, run `task build`, and inspect any diff in `serve/static/` — bytes may differ from the CI-built ones due to build-environment determinism, but the *source* should be identical.
+The embedded `serve/static/boba/*.js` and `serve/static/ghostty-web/*` files are committed so `go install github.com/btwiuse/boba/cmd/boba` works without a JS toolchain. CI rebuilds them on every push and force-commits the result back to the branch (`.github/workflows/rebuild-static.yml`), so the bytes in HEAD are always traceable to a CI run plus the submodule SHA. To verify locally: clone with submodules, run `task build`, and inspect any diff in `serve/static/` — bytes may differ from the CI-built ones due to build-environment determinism, but the *source* should be identical.
 
 ## Command Documentation
 
-The `booba` CLI is built on [spf13/cobra](https://github.com/spf13/cobra) and ships generated documentation alongside the binary:
+The `boba` CLI is built on [spf13/cobra](https://github.com/spf13/cobra) and ships generated documentation alongside the binary:
 
-- **Man pages** — `docs/man/booba.1` and one file per subcommand. Install with `cp docs/man/*.1 /usr/local/share/man/man1/`.
-- **Markdown** — `docs/markdown/booba.md` and subcommand files, suitable for wikis or docs sites.
-- **Shell completions** — `completions/booba.{bash,zsh,fish}`. Source the appropriate file from your shell rc, or install to your system's completion directory.
+- **Man pages** — `docs/man/boba.1` and one file per subcommand. Install with `cp docs/man/*.1 /usr/local/share/man/man1/`.
+- **Markdown** — `docs/markdown/boba.md` and subcommand files, suitable for wikis or docs sites.
+- **Shell completions** — `completions/boba.{bash,zsh,fish}`. Source the appropriate file from your shell rc, or install to your system's completion directory.
 
 Regenerate everything after changing commands or flags:
 
@@ -28,7 +28,7 @@ Regenerate everything after changing commands or flags:
 task docs:build
 ```
 
-The hidden `booba docs` subcommand drives this: `booba docs man -o <dir>`, `booba docs markdown -o <dir>`, and `booba completion <shell>`.
+The hidden `boba docs` subcommand drives this: `boba docs man -o <dir>`, `boba docs markdown -o <dir>`, and `boba completion <shell>`.
 
 ## Release CI Environment Variables
 

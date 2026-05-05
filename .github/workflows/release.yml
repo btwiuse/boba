@@ -26,7 +26,7 @@ jobs:
           node-version: 20
 
       # No bun/zig/task setup needed: release-binaries trusts the committed
-      # serve/static/booba/* and serve/static/ghostty-web/* (canonicalised by
+      # serve/static/boba/* and serve/static/ghostty-web/* (canonicalised by
       # rebuild-static.yml on push). Rebuilding here would (a) leave a
       # .zig-cache/ behind and (b) produce env-specific bytes that diverge
       # from HEAD — both of which break GoReleaser's clean-tree check.

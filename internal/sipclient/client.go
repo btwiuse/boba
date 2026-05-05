@@ -13,7 +13,7 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // TTY abstracts the pieces of a local terminal the interactive client needs.

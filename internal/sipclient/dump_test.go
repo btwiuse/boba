@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 func TestDumpHandler_Frames(t *testing.T) {

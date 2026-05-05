@@ -49,11 +49,11 @@ func (s *statusCapturingWriter) Unwrap() http.ResponseWriter {
 
 // LiftHTTPMiddleware adapts a standard func(http.Handler) http.Handler
 // into a ConnectMiddleware so existing net/http middleware (chi,
-// gorilla, otelhttp, prometheus, tollbooth, ...) can run on the booba
+// gorilla, otelhttp, prometheus, tollbooth, ...) can run on the boba
 // handshake boundary.
 //
 // Outcomes:
-//   - The lifted middleware calls next: the adapter invokes the booba
+//   - The lifted middleware calls next: the adapter invokes the boba
 //     ConnectHandler chain and returns its result.
 //   - The lifted middleware writes a response and does not call next:
 //     the adapter returns errResponseWritten so the framework stops

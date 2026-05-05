@@ -12,7 +12,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // newWSPair returns a paired (server, client) FrameConn for testing. The

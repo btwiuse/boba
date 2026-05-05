@@ -12,8 +12,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/NimbleMarkets/go-booba/serve"
-	"github.com/NimbleMarkets/go-booba/serve/middleware/logging"
+	"github.com/btwiuse/boba/serve"
+	"github.com/btwiuse/boba/serve/middleware/logging"
 )
 
 type fakeSession struct {

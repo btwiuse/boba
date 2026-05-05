@@ -12,7 +12,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // resizeTTY lets the test change the reported size on demand.

@@ -14,7 +14,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // blockingTTY's Read blocks forever on the pipe until Close is called.
@@ -191,7 +191,7 @@ func TestRunInteractive_EscapeCharDisconnects(t *testing.T) {
 	if err := runInteractive(ctx, conn, tty, opts, io.Discard); err != nil {
 		t.Fatalf("runInteractive: %v", err)
 	}
-	if got := tty.Output(); !strings.Contains(got, "booba-sip-client>") {
+	if got := tty.Output(); !strings.Contains(got, "boba-sip-client>") {
 		t.Errorf("expected escape prompt in output; got %q", got)
 	}
 }

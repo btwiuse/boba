@@ -1,17 +1,17 @@
-# `booba-sip-client` — Design
+# `boba-sip-client` — Design
 
 **Date:** 2026-04-21
 **Status:** Draft, pending implementation plan
 
 ## Motivation
 
-Today `booba` is server-only: it wraps a local command under a PTY and serves it
+Today `boba` is server-only: it wraps a local command under a PTY and serves it
 over WebSocket/WebTransport using a Sip-compatible `[type][payload]` protocol.
-The only client is the TypeScript `BoobaTerminal` frontend running in a browser.
+The only client is the TypeScript `BobaTerminal` frontend running in a browser.
 
 A companion CLI client covers two use cases the browser frontend cannot:
 
-1. **Real end-user access from a terminal** — connect to a running booba server
+1. **Real end-user access from a terminal** — connect to a running boba server
    over `ws://` or `wss://` and get an interactive session without a browser.
    Useful over SSH tunnels, in headless environments, and anywhere a terminal
    is preferable to a browser.
@@ -21,11 +21,11 @@ A companion CLI client covers two use cases the browser frontend cannot:
 
 ## Goals
 
-- One binary, `booba-sip-client`, that serves both use cases well.
+- One binary, `boba-sip-client`, that serves both use cases well.
 - Minimal surface area; no features that can be deferred to a later revision
   without hurting the two goals above.
 - Clean separation from the server: the client should not import
-  `github.com/NimbleMarkets/go-booba/serve`.
+  `github.com/btwiuse/boba/serve`.
 
 ## Non-goals
 
@@ -38,7 +38,7 @@ A companion CLI client covers two use cases the browser frontend cannot:
 
 ## Packaging
 
-- **New binary:** `cmd/booba-sip-client/main.go` — tiny entrypoint, build tag
+- **New binary:** `cmd/boba-sip-client/main.go` — tiny entrypoint, build tag
   `//go:build !js`, calls into `internal/sipclient.Execute(ctx)`.
 - **New CLI package:** `internal/sipclient/` (sibling of `internal/cli/`).
   - `root.go` — cobra root, flag wiring, `Execute`.
@@ -56,8 +56,8 @@ A companion CLI client covers two use cases the browser frontend cannot:
 ## CLI surface
 
 ```
-booba-sip-client [flags] <url>                 # interactive
-booba-sip-client --dump-frames [flags] <url>   # non-interactive frame dumper
+boba-sip-client [flags] <url>                 # interactive
+boba-sip-client --dump-frames [flags] <url>   # non-interactive frame dumper
 ```
 
 `<url>` is a positional argument of the form `ws://host:port[/path]` or
@@ -92,7 +92,7 @@ server's default endpoint). The scheme is required.
 
 ### Escape prompt
 
-On `--escape-char` at start-of-line, the client shows `booba-sip-client> ` on
+On `--escape-char` at start-of-line, the client shows `boba-sip-client> ` on
 the local tty and reads a single line. Commands:
 
 - `quit`, `exit`, `q` — clean disconnect, exit 0.
@@ -224,7 +224,7 @@ sent as a single `MsgInput` and then the client just listens until
 
 ### End-to-end tests
 
-1. **In-process e2e in `cmd/booba-sip-client/`.** Spin up `serve.Server` in a
+1. **In-process e2e in `cmd/boba-sip-client/`.** Spin up `serve.Server` in a
    goroutine against `httptest.NewServer` wrapping a deterministic command
    (`sh -c 'echo hello; sleep 0.1; exit 0'`), invoke the client in
    `--dump-frames` mode against that URL, assert the expected JSON sequence
@@ -246,8 +246,8 @@ sent as a single `MsgInput` and then the client just listens until
 
 - `Taskfile.yml` gains `build:client` / `test:client` targets mirroring the
   server's equivalents.
-- If the release workflow builds and publishes `booba`, it learns to build
-  and publish `booba-sip-client` alongside it. To be confirmed during plan
+- If the release workflow builds and publishes `boba`, it learns to build
+  and publish `boba-sip-client` alongside it. To be confirmed during plan
   authoring against the actual workflow files.
 
 ## Open questions / follow-ups
@@ -256,4 +256,4 @@ sent as a single `MsgInput` and then the client just listens until
   - WebTransport support.
   - A `--script` / scenario-runner mode if `--dump-frames` proves too
     low-level for the tests we actually want.
-  - `docs` subcommand for man-page generation (mirror of `booba docs`).
+  - `docs` subcommand for man-page generation (mirror of `boba docs`).

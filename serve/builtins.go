@@ -37,7 +37,7 @@ func basicAuthMiddleware(username, password string) ConnectMiddleware {
 		return func(r *http.Request) error {
 			if !validateBasicAuth(r, username, password) {
 				headers := make(http.Header)
-				headers.Add("WWW-Authenticate", `Basic realm="booba"`)
+				headers.Add("WWW-Authenticate", `Basic realm="boba"`)
 				return &ConnectError{
 					Status:  http.StatusUnauthorized,
 					Headers: headers,

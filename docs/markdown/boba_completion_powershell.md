@@ -1,4 +1,4 @@
-## booba completion powershell
+## boba completion powershell
 
 Generate the autocompletion script for powershell
 
@@ -8,14 +8,14 @@ Generate the autocompletion script for powershell.
 
 To load completions in your current shell session:
 
-	booba completion powershell | Out-String | Invoke-Expression
+	boba completion powershell | Out-String | Invoke-Expression
 
 To load completions for every new session, add the output of the above command
 to your powershell profile.
 
 
 ```
-booba completion powershell [flags]
+boba completion powershell [flags]
 ```
 
 ### Options
@@ -27,5 +27,5 @@ booba completion powershell [flags]
 
 ### SEE ALSO
 
-* [booba completion](booba_completion.md)	 - Generate the autocompletion script for the specified shell
+* [boba completion](boba_completion.md)	 - Generate the autocompletion script for the specified shell
 

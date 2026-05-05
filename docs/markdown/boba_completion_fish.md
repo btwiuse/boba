@@ -1,4 +1,4 @@
-## booba completion fish
+## boba completion fish
 
 Generate the autocompletion script for fish
 
@@ -8,17 +8,17 @@ Generate the autocompletion script for the fish shell.
 
 To load completions in your current shell session:
 
-	booba completion fish | source
+	boba completion fish | source
 
 To load completions for every new session, execute once:
 
-	booba completion fish > ~/.config/fish/completions/booba.fish
+	boba completion fish > ~/.config/fish/completions/boba.fish
 
 You will need to start a new shell for this setup to take effect.
 
 
 ```
-booba completion fish [flags]
+boba completion fish [flags]
 ```
 
 ### Options
@@ -30,5 +30,5 @@ booba completion fish [flags]
 
 ### SEE ALSO
 
-* [booba completion](booba_completion.md)	 - Generate the autocompletion script for the specified shell
+* [boba completion](boba_completion.md)	 - Generate the autocompletion script for the specified shell
 

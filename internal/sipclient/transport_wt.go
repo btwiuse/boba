@@ -12,7 +12,7 @@ import (
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/webtransport-go"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // http3NoError is the HTTP/3 H3_NO_ERROR application code. When a WebTransport

@@ -1,10 +1,10 @@
-# `@nimblemarkets/booba` npm Package Implementation Plan
+# `@btwiuse/boba` npm Package Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Publish booba's TypeScript terminal wrapper as `@nimblemarkets/booba` on GitHub Packages, with dual build output for both npm consumers and Go `serve` embedding.
+**Goal:** Publish boba's TypeScript terminal wrapper as `@btwiuse/boba` on GitHub Packages, with dual build output for both npm consumers and Go `serve` embedding.
 
-**Architecture:** Single TS source tree (`ts/`) compiled by two tsconfigs — `tsconfig.json` outputs to `dist/` for npm, `tsconfig.embed.json` outputs to `serve/static/booba/` for `go:embed`. The ghostty-web import changes from a relative path to a bare package name, with `paths` remapping it for the embed build.
+**Architecture:** Single TS source tree (`ts/`) compiled by two tsconfigs — `tsconfig.json` outputs to `dist/` for npm, `tsconfig.embed.json` outputs to `serve/static/boba/` for `go:embed`. The ghostty-web import changes from a relative path to a bare package name, with `paths` remapping it for the embed build.
 
 **Tech Stack:** TypeScript, npm (GitHub Packages registry), GitHub Actions
 
@@ -15,11 +15,11 @@
 ### Task 1: Change ghostty-web import to bare package name
 
 **Files:**
-- Modify: `ts/booba.ts:1`
+- Modify: `ts/boba.ts:1`
 
 - [ ] **Step 1: Update the import**
 
-In `ts/booba.ts`, change line 1 from:
+In `ts/boba.ts`, change line 1 from:
 
 ```ts
 // @ts-ignore - Import will resolve at runtime in browser
@@ -41,7 +41,7 @@ Expected: Clean exit, no errors. The bare `ghostty-web` import resolves from `no
 - [ ] **Step 3: Commit**
 
 ```bash
-git add ts/booba.ts
+git add ts/boba.ts
 git commit -m "refactor: change ghostty-web import to bare package name"
 ```
 
@@ -99,7 +99,7 @@ Create `tsconfig.embed.json`:
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
-        "outDir": "./serve/static/booba",
+        "outDir": "./serve/static/boba",
         "paths": {
             "ghostty-web": ["./serve/static/ghostty-web/ghostty-web.js"]
         }
@@ -111,21 +111,21 @@ Create `tsconfig.embed.json`:
 
 Run: `npx tsc`
 
-Expected: Clean exit. Files appear in `dist/` (booba.js, booba.d.ts, adapter.js, etc.).
+Expected: Clean exit. Files appear in `dist/` (boba.js, boba.d.ts, adapter.js, etc.).
 
 - [ ] **Step 4: Verify the embed build**
 
 Run: `npx tsc -p tsconfig.embed.json`
 
-Expected: Clean exit. Files appear in `serve/static/booba/` as before.
+Expected: Clean exit. Files appear in `serve/static/boba/` as before.
 
 - [ ] **Step 5: Verify the embed output resolves ghostty-web correctly**
 
-Run: `head -1 serve/static/booba/booba.js`
+Run: `head -1 serve/static/boba/boba.js`
 
 Expected: The import should be rewritten to the relative path `../ghostty-web/ghostty-web.js` (TypeScript `paths` rewrites the import in the output). If it still says `ghostty-web`, we'll need to verify the paths config.
 
-Note: TypeScript `paths` only affects type resolution, not emitted JS. The emitted JS will still contain `from 'ghostty-web'`. This is fine for the embed build because the `serve/static/` layout serves files via HTTP, and `index.html` uses an import map or the browser resolves it. However, if the current embed build relies on the relative path in the JS output, we need to verify. Check `serve/static/index.html` — it imports `./static/booba/booba.js` which then imports `ghostty-web`. Since these are served by the Go HTTP server (not a bundler), the browser needs the bare import to resolve. The `index.html` uses `<script type="module">` so the browser will try to resolve `ghostty-web` as a URL, which will fail.
+Note: TypeScript `paths` only affects type resolution, not emitted JS. The emitted JS will still contain `from 'ghostty-web'`. This is fine for the embed build because the `serve/static/` layout serves files via HTTP, and `index.html` uses an import map or the browser resolves it. However, if the current embed build relies on the relative path in the JS output, we need to verify. Check `serve/static/index.html` — it imports `./static/boba/boba.js` which then imports `ghostty-web`. Since these are served by the Go HTTP server (not a bundler), the browser needs the bare import to resolve. The `index.html` uses `<script type="module">` so the browser will try to resolve `ghostty-web` as a URL, which will fail.
 
 **Resolution:** We need to keep the relative path in the embed output JS. Since `paths` doesn't rewrite emitted JS, we'll use a small post-build sed to fix the embed output:
 
@@ -135,7 +135,7 @@ Update `tsconfig.embed.json` to NOT use paths (remove the paths field):
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
-        "outDir": "./serve/static/booba"
+        "outDir": "./serve/static/boba"
     }
 }
 ```
@@ -146,7 +146,7 @@ Then the Taskfile embed build step (Task 4) will run sed after tsc to rewrite th
 
 Run: `go build ./...`
 
-Expected: Clean exit. The Go embed picks up `serve/static/booba/*.js`.
+Expected: Clean exit. The Go embed picks up `serve/static/boba/*.js`.
 
 - [ ] **Step 7: Commit**
 
@@ -168,17 +168,17 @@ Replace `package.json` with:
 
 ```json
 {
-  "name": "@nimblemarkets/booba",
+  "name": "@btwiuse/boba",
   "version": "0.1.0",
   "type": "module",
   "description": "Terminal wrapper for BubbleTea programs using ghostty-web",
-  "main": "dist/booba.js",
-  "module": "dist/booba.js",
-  "types": "dist/booba.d.ts",
+  "main": "dist/boba.js",
+  "module": "dist/boba.js",
+  "types": "dist/boba.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/booba.js",
-      "types": "./dist/booba.d.ts"
+      "import": "./dist/boba.js",
+      "types": "./dist/boba.d.ts"
     }
   },
   "files": [
@@ -186,14 +186,14 @@ Replace `package.json` with:
   ],
   "scripts": {
     "build": "tsc",
-    "build:embed": "tsc -p tsconfig.embed.json && sed -i'' -e \"s|from 'ghostty-web'|from '../ghostty-web/ghostty-web.js'|\" serve/static/booba/booba.js"
+    "build:embed": "tsc -p tsconfig.embed.json && sed -i'' -e \"s|from 'ghostty-web'|from '../ghostty-web/ghostty-web.js'|\" serve/static/boba/boba.js"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/NimbleMarkets/go-booba.git"
+    "url": "https://github.com/btwiuse/boba.git"
   },
   "license": "MIT",
   "peerDependencies": {
@@ -222,9 +222,9 @@ Expected: Files in `dist/`.
 
 Run: `npm run build:embed`
 
-Expected: Files in `serve/static/booba/`. Check the import was rewritten:
+Expected: Files in `serve/static/boba/`. Check the import was rewritten:
 
-Run: `grep "ghostty-web" serve/static/booba/booba.js`
+Run: `grep "ghostty-web" serve/static/boba/boba.js`
 
 Expected: `from '../ghostty-web/ghostty-web.js'` (the relative path, not bare `ghostty-web`).
 
@@ -238,7 +238,7 @@ Expected: Lists only files under `dist/` plus package.json/README. No `ts/` sour
 
 ```bash
 git add package.json package-lock.json
-git commit -m "build: configure package.json for @nimblemarkets/booba npm package"
+git commit -m "build: configure package.json for @btwiuse/boba npm package"
 ```
 
 ---
@@ -289,7 +289,7 @@ In the `clean-assets` task, add a line:
   clean-assets:
     desc: 'Cleans compiled assets'
     cmds:
-      - rm -rf serve/static/booba
+      - rm -rf serve/static/boba
       - rm -rf serve/static/ghostty-web
       - rm -rf dist
 ```
@@ -299,7 +299,7 @@ In the `clean-assets` task, add a line:
 Add `dist/` to `.gitignore`:
 
 ```
-# booba .gitignore
+# boba .gitignore
 
 .task
 .superpowers/
@@ -307,9 +307,9 @@ Add `dist/` to `.gitignore`:
 node_modules/
 bin/
 dist/
-/booba-view-example
+/boba-view-example
 
-serve/static/booba/
+serve/static/boba/
 serve/static/ghostty-web/
 ```
 
@@ -384,16 +384,16 @@ git commit -m "ci: add release workflow for npm publishing to GitHub Packages"
 
 ### Task 6: Update example repo to consume npm package
 
-**Files (in `~/projects/go-booba-example/`):**
+**Files (in `~/projects/boba-example/`):**
 - Create: `.npmrc`
 - Modify: `package.json`
 - Modify: `.github/workflows/pages.yml`
 - Modify: `.gitignore`
-- Delete: `web/booba/` directory
+- Delete: `web/boba/` directory
 
 - [ ] **Step 1: Create .npmrc**
 
-Create `/Users/evan/projects/go-booba-example/.npmrc`:
+Create `/Users/evan/projects/boba-example/.npmrc`:
 
 ```
 @nimblemarkets:registry=https://npm.pkg.github.com
@@ -401,13 +401,13 @@ Create `/Users/evan/projects/go-booba-example/.npmrc`:
 
 - [ ] **Step 2: Update package.json**
 
-Replace `/Users/evan/projects/go-booba-example/package.json` with:
+Replace `/Users/evan/projects/boba-example/package.json` with:
 
 ```json
 {
   "private": true,
   "dependencies": {
-    "@nimblemarkets/booba": "^0.1.0",
+    "@btwiuse/boba": "^0.1.0",
     "ghostty-web": "^0.4.0-next.14.g6a1a50d"
   }
 }
@@ -415,21 +415,21 @@ Replace `/Users/evan/projects/go-booba-example/package.json` with:
 
 - [ ] **Step 3: Update .gitignore**
 
-Replace `/Users/evan/projects/go-booba-example/.gitignore` with:
+Replace `/Users/evan/projects/boba-example/.gitignore` with:
 
 ```
 node_modules/
 web/app.wasm
 web/wasm_exec.js
 web/ghostty-web/
-web/booba/
+web/boba/
 ```
 
-- [ ] **Step 4: Remove checked-in web/booba/ files**
+- [ ] **Step 4: Remove checked-in web/boba/ files**
 
-Run: `rm -rf /Users/evan/projects/go-booba-example/web/booba/`
+Run: `rm -rf /Users/evan/projects/boba-example/web/boba/`
 
-- [ ] **Step 5: Update pages.yml workflow to copy booba from node_modules**
+- [ ] **Step 5: Update pages.yml workflow to copy boba from node_modules**
 
 In `.github/workflows/pages.yml`, update the "Copy runtime assets" step to:
 
@@ -440,23 +440,23 @@ In `.github/workflows/pages.yml`, update the "Copy runtime assets" step to:
           mkdir -p web/ghostty-web
           cp node_modules/ghostty-web/dist/ghostty-web.js web/ghostty-web/
           cp node_modules/ghostty-web/dist/ghostty-vt.wasm web/ghostty-web/
-          mkdir -p web/booba
-          cp node_modules/@nimblemarkets/booba/dist/*.js web/booba/
+          mkdir -p web/boba
+          cp node_modules/@btwiuse/boba/dist/*.js web/boba/
 ```
 
-- [ ] **Step 6: Update docs/GUIDE_GITHUB.md in booba repo**
+- [ ] **Step 6: Update docs/GUIDE_GITHUB.md in boba repo**
 
-In `/Users/evan/projects/booba/docs/GUIDE_GITHUB.md`, update the "Copy runtime assets" workflow step to match the new pattern (copy from `node_modules/@nimblemarkets/booba/dist/` instead of building from source), and update the package.json example to include `@nimblemarkets/booba` as a dependency with an `.npmrc` note.
+In `/Users/evan/projects/boba/docs/GUIDE_GITHUB.md`, update the "Copy runtime assets" workflow step to match the new pattern (copy from `node_modules/@btwiuse/boba/dist/` instead of building from source), and update the package.json example to include `@btwiuse/boba` as a dependency with an `.npmrc` note.
 
 - [ ] **Step 7: Commit both repos**
 
-In booba repo:
+In boba repo:
 ```bash
-git -C /Users/evan/projects/booba add docs/GUIDE_GITHUB.md
-git -C /Users/evan/projects/booba commit -m "docs: update guide to use @nimblemarkets/booba npm package"
+git -C /Users/evan/projects/boba add docs/GUIDE_GITHUB.md
+git -C /Users/evan/projects/boba commit -m "docs: update guide to use @btwiuse/boba npm package"
 ```
 
-Note: The example repo commits happen separately when that repo is ready to push. The npm package must be published first (tag `v0.1.0` in booba repo) before the example repo's `npm ci` will work.
+Note: The example repo commits happen separately when that repo is ready to push. The npm package must be published first (tag `v0.1.0` in boba repo) before the example repo's `npm ci` will work.
 
 ---
 
@@ -466,11 +466,11 @@ This task is manual — it triggers the release workflow.
 
 - [ ] **Step 1: Verify everything builds locally**
 
-Run in booba repo:
+Run in boba repo:
 
 ```bash
 npm run build          # npm package -> dist/
-npm run build:embed    # go:embed -> serve/static/booba/
+npm run build:embed    # go:embed -> serve/static/boba/
 go build ./...         # Go binaries
 go test ./...          # Go tests
 ```
@@ -484,22 +484,22 @@ git tag v0.1.0
 git push origin main --tags
 ```
 
-Expected: The `release.yml` workflow triggers and publishes `@nimblemarkets/booba@0.1.0` to GitHub Packages.
+Expected: The `release.yml` workflow triggers and publishes `@btwiuse/boba@0.1.0` to GitHub Packages.
 
 - [ ] **Step 3: Verify the package is published**
 
-Run: `npm view @nimblemarkets/booba --registry=https://npm.pkg.github.com`
+Run: `npm view @btwiuse/boba --registry=https://npm.pkg.github.com`
 
 Expected: Shows version `0.1.0` with the correct metadata.
 
 - [ ] **Step 4: Test install in example repo**
 
-Run in go-booba-example:
+Run in boba-example:
 
 ```bash
 npm install
 ```
 
-Expected: `@nimblemarkets/booba` and `ghostty-web` install into `node_modules/`.
+Expected: `@btwiuse/boba` and `ghostty-web` install into `node_modules/`.
 
-Verify: `ls node_modules/@nimblemarkets/booba/dist/booba.js` exists.
+Verify: `ls node_modules/@btwiuse/boba/dist/boba.js` exists.

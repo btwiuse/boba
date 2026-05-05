@@ -1,4 +1,4 @@
-## booba completion zsh
+## boba completion zsh
 
 Generate the autocompletion script for zsh
 
@@ -13,23 +13,23 @@ to enable it.  You can execute the following once:
 
 To load completions in your current shell session:
 
-	source <(booba completion zsh)
+	source <(boba completion zsh)
 
 To load completions for every new session, execute once:
 
 #### Linux:
 
-	booba completion zsh > "${fpath[1]}/_booba"
+	boba completion zsh > "${fpath[1]}/_boba"
 
 #### macOS:
 
-	booba completion zsh > $(brew --prefix)/share/zsh/site-functions/_booba
+	boba completion zsh > $(brew --prefix)/share/zsh/site-functions/_boba
 
 You will need to start a new shell for this setup to take effect.
 
 
 ```
-booba completion zsh [flags]
+boba completion zsh [flags]
 ```
 
 ### Options
@@ -41,5 +41,5 @@ booba completion zsh [flags]
 
 ### SEE ALSO
 
-* [booba completion](booba_completion.md)	 - Generate the autocompletion script for the specified shell
+* [boba completion](boba_completion.md)	 - Generate the autocompletion script for the specified shell
 

@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug booba-view-example server",
+            "name": "Debug boba-view-example server",
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${workspaceFolder}/cmd/booba-view-example/booba-view-example.go",
+            "program": "${workspaceFolder}/cmd/boba-view-example/boba-view-example.go",
             "args": [
                 "--web",
                 ":8080"

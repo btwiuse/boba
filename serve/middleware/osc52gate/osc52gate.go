@@ -13,7 +13,7 @@ import (
 	"io"
 	"log/slog"
 
-	"github.com/NimbleMarkets/go-booba/serve"
+	"github.com/btwiuse/boba/serve"
 )
 
 // Mode selects how the middleware treats an observed OSC 52 escape.

@@ -1,7 +1,7 @@
 /**
- * WebSocket adapter speaking the Booba/Sip protocol ('0'-'8' message types).
+ * WebSocket adapter speaking the Boba/Sip protocol ('0'-'8' message types).
  */
-import { BoobaAdapter, BoobaConnectionState } from './adapter.js';
+import { BobaAdapter, BobaConnectionState } from './adapter.js';
 import {
     MsgInput, MsgOutput, MsgResize, MsgPing, MsgPong,
     MsgTitle, MsgOptions, MsgClose, MsgKittyKbd,
@@ -15,7 +15,7 @@ export interface WebSocketAdapterCallbacks {
     onClose?: (reason: string) => void;
 }
 
-export class BoobaProtocolAdapter implements BoobaAdapter {
+export class BobaProtocolAdapter implements BobaAdapter {
     private ws: WebSocket | null = null;
     private onDataCallback: ((data: string | Uint8Array) => void) | null = null;
     private pingInterval: number | null = null;
@@ -23,7 +23,7 @@ export class BoobaProtocolAdapter implements BoobaAdapter {
     private maxReconnectAttempts = 5;
     private reconnectBaseDelay = 1000;
     private reconnectMultiplier = 1.5;
-    private onStateChangeCallback: ((state: BoobaConnectionState, message: string) => void) | null = null;
+    private onStateChangeCallback: ((state: BobaConnectionState, message: string) => void) | null = null;
     private callbacks: WebSocketAdapterCallbacks;
     private shouldReconnect = true;
 
@@ -31,17 +31,17 @@ export class BoobaProtocolAdapter implements BoobaAdapter {
         this.callbacks = callbacks;
     }
 
-    boobaRead(): string | Uint8Array | null {
+    bobaRead(): string | Uint8Array | null {
         return null;
     }
 
-    boobaWrite(data: string | Uint8Array): void {
+    bobaWrite(data: string | Uint8Array): void {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
         const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
         this.ws.send(encodeWSMessage(MsgInput, bytes));
     }
 
-    boobaResize(cols: number, rows: number, widthPx?: number, heightPx?: number): void {
+    bobaResize(cols: number, rows: number, widthPx?: number, heightPx?: number): void {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
         const msg: ResizeMessage = { cols, rows };
         if (widthPx && widthPx > 0) msg.widthPx = widthPx;
@@ -51,7 +51,7 @@ export class BoobaProtocolAdapter implements BoobaAdapter {
 
     connect(
         onData: (data: string | Uint8Array) => void,
-        onStateChange: (state: BoobaConnectionState, message: string) => void
+        onStateChange: (state: BobaConnectionState, message: string) => void
     ): void {
         this.onDataCallback = onData;
         this.onStateChangeCallback = onStateChange;
@@ -113,7 +113,7 @@ export class BoobaProtocolAdapter implements BoobaAdapter {
     private _reconnect(): void {
         this.reconnectAttempts++;
         const delay = this.reconnectBaseDelay * Math.pow(this.reconnectMultiplier, this.reconnectAttempts - 1);
-        this.onStateChangeCallback?.('reconnecting' as BoobaConnectionState,
+        this.onStateChangeCallback?.('reconnecting' as BobaConnectionState,
             `Reconnecting (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
         setTimeout(() => this._connect(), delay);
     }

@@ -3,7 +3,7 @@
 // Package wasm provides a bridge for running BubbleTea programs in the browser.
 //
 // It registers JavaScript functions on window (bubbletea_read, bubbletea_write,
-// bubbletea_resize) that booba's BoobaWasmAdapter polls to shuttle data between
+// bubbletea_resize) that boba's BobaWasmAdapter polls to shuttle data between
 // the ghostty-web terminal emulator and the Go program.
 //
 // Usage:
@@ -11,7 +11,7 @@
 //	//go:build js && wasm
 //	package main
 //
-//	import "github.com/NimbleMarkets/go-booba/wasm"
+//	import "github.com/btwiuse/boba/wasm"
 //
 //	func main() {
 //	    wasm.Run(initialModel())

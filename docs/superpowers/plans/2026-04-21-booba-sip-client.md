@@ -1,20 +1,20 @@
-# `booba-sip-client` Implementation Plan
+# `boba-sip-client` Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a companion CLI client (`booba-sip-client`) that connects to a running `booba` server over WebSocket — usable interactively as a terminal client, and scriptable via a `--dump-frames` mode for testing.
+**Goal:** Build a companion CLI client (`boba-sip-client`) that connects to a running `boba` server over WebSocket — usable interactively as a terminal client, and scriptable via a `--dump-frames` mode for testing.
 
-**Architecture:** Extract the Sip protocol constants/helpers from `serve/` into a new shared `sip/` package. Add a new binary `cmd/booba-sip-client/` and its CLI package `internal/sipclient/` built on cobra + pflag. The interactive client uses `golang.org/x/term` for raw-mode tty handling, `github.com/charmbracelet/x/input` for Kitty-aware key parsing (needed to detect the `^]` escape reliably when Kitty mode is on), and `github.com/coder/websocket` (already used by `serve/`) as transport. The `--dump-frames` mode reuses the same frame router to emit JSON lines on stdout.
+**Architecture:** Extract the Sip protocol constants/helpers from `serve/` into a new shared `sip/` package. Add a new binary `cmd/boba-sip-client/` and its CLI package `internal/sipclient/` built on cobra + pflag. The interactive client uses `golang.org/x/term` for raw-mode tty handling, `github.com/charmbracelet/x/input` for Kitty-aware key parsing (needed to detect the `^]` escape reliably when Kitty mode is on), and `github.com/coder/websocket` (already used by `serve/`) as transport. The `--dump-frames` mode reuses the same frame router to emit JSON lines on stdout.
 
 **Tech Stack:**
-- Go 1.25, module `github.com/NimbleMarkets/go-booba`
+- Go 1.25, module `github.com/btwiuse/boba`
 - `github.com/spf13/cobra` + `github.com/spf13/pflag` (project convention — NEVER stdlib `flag`)
 - `github.com/coder/websocket` v1.8.14 (already a direct dep)
 - `golang.org/x/term` (raw mode, terminal size)
 - `github.com/charmbracelet/x/input` (new direct dep — Kitty-aware input parsing)
 - Standard Go testing (no testify — project uses plain `t.Errorf`/`t.Fatalf`)
 
-**Design spec:** `docs/superpowers/specs/2026-04-21-booba-sip-client-design.md`
+**Design spec:** `docs/superpowers/specs/2026-04-21-boba-sip-client-design.md`
 
 ---
 
@@ -52,7 +52,7 @@ grep -rn -E 'Msg(Input|Output|Resize|Ping|Pong|Title|Options|Close|KittyKbd)|Max
 ```
 
 For each match in `serve/*.go`:
-1. Add `"github.com/NimbleMarkets/go-booba/sip"` to the file's import block (keep imports grouped: stdlib / external / module-local).
+1. Add `"github.com/btwiuse/boba/sip"` to the file's import block (keep imports grouped: stdlib / external / module-local).
 2. Replace the bare symbol (e.g., `MsgInput`) with the qualified form (`sip.MsgInput`).
 
 Do the same for `serve/*_test.go` files.
@@ -85,7 +85,7 @@ clients can depend on the wire format without pulling in server code."
 Create the new binary entrypoint and a minimal cobra root that parses the target URL positional arg but does nothing yet. This lets every subsequent task assume the plumbing exists.
 
 **Files:**
-- Create: `cmd/booba-sip-client/main.go`
+- Create: `cmd/boba-sip-client/main.go`
 - Create: `internal/sipclient/root.go`
 - Create: `internal/sipclient/root_test.go`
 
@@ -192,9 +192,9 @@ type Options struct {
 func newRootCmd() *cobra.Command {
 	var opts Options
 	cmd := &cobra.Command{
-		Use:           "booba-sip-client [flags] <url>",
-		Short:         "Connect to a booba server and either run interactively or dump frames",
-		Long:          `booba-sip-client connects to a booba server over WebSocket (ws:// or wss://).`,
+		Use:           "boba-sip-client [flags] <url>",
+		Short:         "Connect to a boba server and either run interactively or dump frames",
+		Long:          `boba-sip-client connects to a boba server over WebSocket (ws:// or wss://).`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Args:          cobra.MaximumNArgs(1),
@@ -230,7 +230,7 @@ func run(ctx context.Context, _, _ any, opts *Options) error {
 	return fmt.Errorf("not implemented: url=%q", opts.URL)
 }
 
-// Execute is the main entry point used by cmd/booba-sip-client/main.go.
+// Execute is the main entry point used by cmd/boba-sip-client/main.go.
 func Execute(ctx context.Context) error {
 	return newRootCmd().ExecuteContext(ctx)
 }
@@ -238,7 +238,7 @@ func Execute(ctx context.Context) error {
 
 Note: the `run` signature uses `any` for writers temporarily; Task 10 replaces this with `io.Writer`. This lets the scaffold compile without creating a circular dependency with unwritten code.
 
-Create `cmd/booba-sip-client/main.go`:
+Create `cmd/boba-sip-client/main.go`:
 
 ```go
 //go:build !js
@@ -250,7 +250,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/NimbleMarkets/go-booba/internal/sipclient"
+	"github.com/btwiuse/boba/internal/sipclient"
 )
 
 func main() {
@@ -266,24 +266,24 @@ func main() {
 Run:
 ```bash
 go test ./internal/sipclient/...
-go build ./cmd/booba-sip-client
+go build ./cmd/boba-sip-client
 ```
 
-Expected: tests PASS, build succeeds producing a `booba-sip-client` binary in the cwd.
+Expected: tests PASS, build succeeds producing a `boba-sip-client` binary in the cwd.
 
 Note: `TestExecute_AcceptsWSURL` passes because `run()` returns a "not implemented" error — which contains neither "url is required" nor "unsupported scheme", satisfying the assertion. Once Task 10 implements `run`, this test naturally tightens to check for a real dial error.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add go.mod go.sum cmd/booba-sip-client/ internal/sipclient/
+git add go.mod go.sum cmd/boba-sip-client/ internal/sipclient/
 git commit -m "feat(sip-client): scaffold binary and cobra root command
 
-Adds cmd/booba-sip-client/main.go and internal/sipclient/ with a root
+Adds cmd/boba-sip-client/main.go and internal/sipclient/ with a root
 cobra command that parses every flag described in the design spec.
 RunE is a stub; later tasks wire in dialing, pumps, and the two
 run modes (interactive and --dump-frames)."
-rm -f booba-sip-client # clean up the build artifact, not tracked
+rm -f boba-sip-client # clean up the build artifact, not tracked
 ```
 
 ---
@@ -685,7 +685,7 @@ func TestRunEscapePrompt(t *testing.T) {
 		want    EscapeAction
 		wantOut []string // substrings that must appear in output
 	}{
-		{"quit", "quit\n", ActionDisconnect, []string{"booba-sip-client>"}},
+		{"quit", "quit\n", ActionDisconnect, []string{"boba-sip-client>"}},
 		{"exit", "exit\n", ActionDisconnect, nil},
 		{"q", "q\n", ActionDisconnect, nil},
 		{"continue", "continue\n", ActionContinue, nil},
@@ -770,7 +770,7 @@ type PromptInfo struct {
 func RunEscapePrompt(r io.Reader, w io.Writer, info PromptInfo) (EscapeAction, error) {
 	sc := bufio.NewScanner(r)
 	for {
-		if _, err := fmt.Fprint(w, "booba-sip-client> "); err != nil {
+		if _, err := fmt.Fprint(w, "boba-sip-client> "); err != nil {
 			return ActionDisconnect, err
 		}
 		if !sc.Scan() {
@@ -860,7 +860,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 type fakeHandler struct {
@@ -1028,7 +1028,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // ErrSessionClosed is returned by Router.Route when a MsgClose frame is
@@ -1147,7 +1147,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 func TestDumpHandler_Frames(t *testing.T) {
@@ -1207,7 +1207,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // DumpHandler implements FrameHandler by writing one JSON line per frame to
@@ -1638,7 +1638,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // RunDump opens a connection to opts.URL and writes decoded frames as JSON
@@ -1789,11 +1789,11 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // fakeServer is a minimal /ws endpoint that sends one options frame, one
-// output frame, then a close frame. Mirrors the shape a real booba server
+// output frame, then a close frame. Mirrors the shape a real boba server
 // produces without pulling serve/ into the test.
 func fakeServer(t *testing.T) *httptest.Server {
 	t.Helper()
@@ -1853,7 +1853,7 @@ func TestRunDump_HappyPath(t *testing.T) {
 Run:
 ```bash
 go test ./internal/sipclient/... -v
-go build ./cmd/booba-sip-client
+go build ./cmd/boba-sip-client
 ```
 
 Expected: every test PASSES, including `TestRunDump_HappyPath`. Build succeeds.
@@ -1865,10 +1865,10 @@ git add internal/sipclient/
 git commit -m "feat(sip-client): implement --dump-frames mode
 
 Adds Dial (coder/websocket), BuildTLSConfig, ParseHeaders, and RunDump,
-which connects to a booba server, optionally sends a single MsgInput
+which connects to a boba server, optionally sends a single MsgInput
 from --dump-input, and writes decoded frames as JSON lines to stdout
 until MsgClose, --dump-timeout, or ctx cancellation."
-rm -f booba-sip-client
+rm -f boba-sip-client
 ```
 
 ---
@@ -1999,7 +1999,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // TTY abstracts the pieces of a local terminal the interactive client needs.
@@ -2236,7 +2236,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // fakeTTY is an in-memory TTY for tests. Writes go to stdout; reads come from
@@ -2490,7 +2490,7 @@ Replace the stub `RunInteractive` in `internal/sipclient/root.go` (the one added
 Run:
 ```bash
 go test ./internal/sipclient/ -v
-go build ./cmd/booba-sip-client
+go build ./cmd/boba-sip-client
 ```
 
 Expected: all tests PASS. If `TestRunInteractive_ForwardsInput` flakes (rare, due to goroutine scheduling), re-run once — the shape of the test (bounded buffered channel, context timeout) is solid.
@@ -2506,7 +2506,7 @@ client→server forwards stdin bytes as MsgInput with start-of-line
 escape-char detection. An initial MsgResize is sent after connect. The
 TTY interface abstracts raw-mode and size handling so pump logic is
 testable with a fake."
-rm -f booba-sip-client
+rm -f boba-sip-client
 ```
 
 ---
@@ -2640,7 +2640,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // resizeTTY lets the test change the reported size on demand.
@@ -3004,7 +3004,7 @@ Note: this reads directly from `os.Stdin`. The order matters: call `QueryKittyFl
 Run:
 ```bash
 go test ./internal/sipclient/ -v
-go build ./cmd/booba-sip-client
+go build ./cmd/boba-sip-client
 ```
 
 Expected: all tests PASS; build succeeds.
@@ -3019,7 +3019,7 @@ On connect, the client queries the local terminal with CSI ? u, parses
 the response, and pushes the reported flags onto the terminal's Kitty
 stack. An initial MsgKittyKbd is sent to the server so it knows what
 encoding the local terminal supports. On shutdown, the flags are popped."
-rm -f booba-sip-client
+rm -f boba-sip-client
 ```
 
 ---
@@ -3029,7 +3029,7 @@ rm -f booba-sip-client
 One real e2e test that spins up the actual server in the test process, runs the client in `--dump-frames` mode against it, and checks the frame stream. This is the regression fence against server/client drift.
 
 **Files:**
-- Create: `cmd/booba-sip-client/e2e_test.go`
+- Create: `cmd/boba-sip-client/e2e_test.go`
 
 - [ ] **Step 1: Look up `serve.Server`'s public API for wrapping a command**
 
@@ -3048,7 +3048,7 @@ Write down in the commit message whichever method exposes the handler. The test 
 
 - [ ] **Step 2: Write the e2e test**
 
-Create `cmd/booba-sip-client/e2e_test.go`:
+Create `cmd/boba-sip-client/e2e_test.go`:
 
 ```go
 package main_test
@@ -3063,8 +3063,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NimbleMarkets/go-booba/internal/sipclient"
-	"github.com/NimbleMarkets/go-booba/serve"
+	"github.com/btwiuse/boba/internal/sipclient"
+	"github.com/btwiuse/boba/serve"
 )
 
 func TestE2E_DumpFramesAgainstRealServer(t *testing.T) {
@@ -3150,7 +3150,7 @@ func decodeBase64(t *testing.T, s string) string {
 
 Run:
 ```bash
-go test ./cmd/booba-sip-client/ -v
+go test ./cmd/boba-sip-client/ -v
 ```
 
 Expected: PASS. If it hangs, the most likely causes are: (a) the server handler isn't mounted on `/ws` the way the server expects, so the upgrade 404s; (b) `ServeCommand` needs a different invocation pattern. Fix whichever is true; the existing `serve/e2e_test.go` shows the correct shape.
@@ -3158,7 +3158,7 @@ Expected: PASS. If it hangs, the most likely causes are: (a) the server handler 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add cmd/booba-sip-client/e2e_test.go
+git add cmd/boba-sip-client/e2e_test.go
 git commit -m "test(sip-client): add end-to-end test against real serve.Server
 
 Ensures the client and server agree on the wire format by running a
@@ -3185,28 +3185,28 @@ Modify `Taskfile.yml`: inside `build-cmds`'s `deps:` list, add the new dep:
   build-cmds:
     desc: 'Build all commands'
     deps:
-      - build-cmd-booba
-      - build-cmd-booba-assets
-      - build-cmd-booba-wasm-build
-      - build-cmd-booba-sip-client
-      - build-cmd-booba-view-example-native
-      - build-cmd-booba-view-example-wasm
+      - build-cmd-boba
+      - build-cmd-boba-assets
+      - build-cmd-boba-wasm-build
+      - build-cmd-boba-sip-client
+      - build-cmd-boba-view-example-native
+      - build-cmd-boba-view-example-wasm
 ```
 
-Immediately before `build-cmd-booba-view-example-native`, add:
+Immediately before `build-cmd-boba-view-example-native`, add:
 
 ```yaml
-  build-cmd-booba-sip-client:
-    desc: 'Build booba-sip-client command'
+  build-cmd-boba-sip-client:
+    desc: 'Build boba-sip-client command'
     deps: [go-tidy]
     cmds:
-      - go build -o bin/booba-sip-client ./cmd/booba-sip-client/
+      - go build -o bin/boba-sip-client ./cmd/boba-sip-client/
     sources:
-      - cmd/booba-sip-client/*.go
+      - cmd/boba-sip-client/*.go
       - internal/sipclient/*.go
       - sip/*.go
     generates:
-      - bin/booba-sip-client
+      - bin/boba-sip-client
 ```
 
 In `clean-cmds`, add the corresponding line:
@@ -3215,12 +3215,12 @@ In `clean-cmds`, add the corresponding line:
   clean-cmds:
     desc: 'Cleans all commands'
     cmds:
-      - rm -f bin/booba
-      - rm -f bin/booba-assets
-      - rm -f bin/booba-sip-client
-      - rm -f bin/booba-wasm-build
-      - rm -f bin/booba-view-example
-      - rm -f bin/booba-view-example.wasm
+      - rm -f bin/boba
+      - rm -f bin/boba-assets
+      - rm -f bin/boba-sip-client
+      - rm -f bin/boba-wasm-build
+      - rm -f bin/boba-view-example
+      - rm -f bin/boba-view-example.wasm
 ```
 
 - [ ] **Step 2: Add goreleaser build entry**
@@ -3228,9 +3228,9 @@ In `clean-cmds`, add the corresponding line:
 Modify `.goreleaser.yml`. In `builds:`, append:
 
 ```yaml
-  - id: booba-sip-client
-    main: ./cmd/booba-sip-client
-    binary: booba-sip-client
+  - id: boba-sip-client
+    main: ./cmd/boba-sip-client
+    binary: boba-sip-client
     env:
       - CGO_ENABLED=0
     goos:
@@ -3242,32 +3242,32 @@ Modify `.goreleaser.yml`. In `builds:`, append:
       - arm64
 ```
 
-In the `notarize.macos[0].ids` list, append `- booba-sip-client` so macOS release builds are signed alongside the others:
+In the `notarize.macos[0].ids` list, append `- boba-sip-client` so macOS release builds are signed alongside the others:
 
 ```yaml
       ids:
-        - booba
-        - booba-assets
-        - booba-wasm-build
-        - booba-sip-client
+        - boba
+        - boba-assets
+        - boba-wasm-build
+        - boba-sip-client
 ```
 
 - [ ] **Step 3: Verify**
 
 Run:
 ```bash
-task build-cmd-booba-sip-client
-ls -l bin/booba-sip-client
+task build-cmd-boba-sip-client
+ls -l bin/boba-sip-client
 goreleaser check
 ```
 
-Expected: `task` produces `bin/booba-sip-client`; `goreleaser check` reports `config is valid`.
+Expected: `task` produces `bin/boba-sip-client`; `goreleaser check` reports `config is valid`.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add Taskfile.yml .goreleaser.yml
-git commit -m "build(sip-client): wire booba-sip-client into Taskfile and goreleaser"
+git commit -m "build(sip-client): wire boba-sip-client into Taskfile and goreleaser"
 ```
 
 ---
@@ -3278,7 +3278,7 @@ Run through this after completing all 16 tasks.
 
 **Spec coverage:**
 - [x] Extract `serve/protocol.go` → `sip/` (Task 1)
-- [x] New binary `cmd/booba-sip-client/main.go` (Task 2)
+- [x] New binary `cmd/boba-sip-client/main.go` (Task 2)
 - [x] New package `internal/sipclient/` (Tasks 2, 5, 6, 7, 8, 10, 12, 13, 14)
 - [x] CLI flags: `--origin`, `--header`, `--insecure-skip-verify`, `--ca-file`, `--escape-char`, `--read-only`, `--kitty`/`--no-kitty`, `--debug`, `--dump-frames`, `--dump-input`, `--dump-timeout`, `--connect-timeout` (Task 2)
 - [x] Interactive server→client pump with routing (Task 12 via Task 7)

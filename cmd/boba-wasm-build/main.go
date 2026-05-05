@@ -1,4 +1,4 @@
-// booba-wasm-build compiles a Go package to WebAssembly, injecting
+// boba-wasm-build compiles a Go package to WebAssembly, injecting
 // js/wasm stubs into BubbleTea v2 at build time.
 //
 // BubbleTea v2 lacks js/wasm build tags for signal handling and TTY
@@ -8,7 +8,7 @@
 //
 // Usage:
 //
-//	go run github.com/NimbleMarkets/go-booba/cmd/booba-wasm-build \
+//	go run github.com/btwiuse/boba/cmd/boba-wasm-build \
 //	    -o web/app.wasm ./cmd/myapp/
 //
 // All flags and arguments are forwarded to `go build` unchanged.
@@ -34,12 +34,12 @@ const bubbleteaModule = "charm.land/bubbletea/v2"
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "Usage: booba-wasm-build [go build flags] <packages>")
-		fmt.Fprintln(os.Stderr, "  e.g. booba-wasm-build -o web/app.wasm ./cmd/myapp/")
+		fmt.Fprintln(os.Stderr, "Usage: boba-wasm-build [go build flags] <packages>")
+		fmt.Fprintln(os.Stderr, "  e.g. boba-wasm-build -o web/app.wasm ./cmd/myapp/")
 		os.Exit(2)
 	}
 	if err := run(os.Args[1:]); err != nil {
-		fmt.Fprintf(os.Stderr, "booba-wasm-build: %v\n", err)
+		fmt.Fprintf(os.Stderr, "boba-wasm-build: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -68,7 +68,7 @@ func run(buildArgs []string) error {
 		return errors.New("no go.mod found — run this from a Go module")
 	}
 
-	tmpDir, err := os.MkdirTemp("", "booba-wasm-build-*")
+	tmpDir, err := os.MkdirTemp("", "boba-wasm-build-*")
 	if err != nil {
 		return fmt.Errorf("create temp dir: %w", err)
 	}

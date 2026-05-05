@@ -31,9 +31,9 @@ type Options struct {
 func newRootCmd() *cobra.Command {
 	var opts Options
 	cmd := &cobra.Command{
-		Use:   "booba-sip-client [flags] <url>",
-		Short: "Connect to a booba server and either run interactively or dump frames",
-		Long: `booba-sip-client connects to a booba server. The URL scheme selects the
+		Use:   "boba-sip-client [flags] <url>",
+		Short: "Connect to a boba server and either run interactively or dump frames",
+		Long: `boba-sip-client connects to a boba server. The URL scheme selects the
 transport:
 
   ws://  / wss://   WebSocket (path defaults to /ws)
@@ -41,7 +41,7 @@ transport:
 
 WebTransport requires the server to speak HTTP/3 over QUIC. Plain-HTTPS
 reverse proxies will not work; the server must have HTTP/3 enabled
-(default for ` + "`booba`" + ` servers unless HTTP3Port is -1).`,
+(default for ` + "`boba`" + ` servers unless HTTP3Port is -1).`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Args:          cobra.MaximumNArgs(1),
@@ -81,7 +81,7 @@ func run(ctx context.Context, stdout, stderr io.Writer, opts *Options) error {
 	return RunInteractive(ctx, stdout, stderr, opts)
 }
 
-// Execute is the main entry point used by cmd/booba-sip-client/main.go.
+// Execute is the main entry point used by cmd/boba-sip-client/main.go.
 func Execute(ctx context.Context) error {
 	return newRootCmd().ExecuteContext(ctx)
 }

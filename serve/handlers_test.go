@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 // SE-9: unknown message types must be logged when Debug is enabled so

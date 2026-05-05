@@ -38,7 +38,7 @@ jobs:
         # Wipe committed outputs first so Task's source/generates check
         # rebuilds rather than false-positively reusing stale committed bytes.
         run: |
-          rm -rf serve/static/booba serve/static/ghostty-web
+          rm -rf serve/static/boba serve/static/ghostty-web
           task build-serve-assets
 
       - name: Test

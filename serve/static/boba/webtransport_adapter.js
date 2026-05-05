@@ -1,5 +1,5 @@
 import { MsgInput, MsgOutput, MsgResize, MsgPing, MsgPong, MsgTitle, MsgOptions, MsgClose, encodeWTMessage, jsonPayload, parseJsonPayload, tryDecodeWTFrame, } from './protocol.js';
-export class BoobaWebTransportAdapter {
+export class BobaWebTransportAdapter {
     constructor(url, certHash, callbacks = {}) {
         this.url = url;
         this.certHash = certHash;
@@ -11,14 +11,14 @@ export class BoobaWebTransportAdapter {
         this.closed = false;
         this.callbacks = callbacks;
     }
-    boobaRead() {
+    bobaRead() {
         return null;
     }
-    boobaWrite(data) {
+    bobaWrite(data) {
         const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
         this._write(MsgInput, bytes);
     }
-    boobaResize(cols, rows, widthPx, heightPx) {
+    bobaResize(cols, rows, widthPx, heightPx) {
         const msg = { cols, rows };
         if (widthPx && widthPx > 0)
             msg.widthPx = widthPx;

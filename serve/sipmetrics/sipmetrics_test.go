@@ -9,8 +9,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/NimbleMarkets/go-booba/serve"
-	"github.com/NimbleMarkets/go-booba/serve/sipmetrics"
+	"github.com/btwiuse/boba/serve"
+	"github.com/btwiuse/boba/serve/sipmetrics"
 )
 
 type fakeSession struct {
@@ -37,11 +37,11 @@ func TestSessionsActiveGaugeTracksLifecycle(t *testing.T) {
 	base := &fakeSession{closed: make(chan struct{}), in: discardWriter{}}
 	wrapped := mw(base)
 
-	if got := gaugeValue(t, reg, "booba_sessions_active"); got != 1 {
+	if got := gaugeValue(t, reg, "boba_sessions_active"); got != 1 {
 		t.Errorf("sessions_active before close = %v; want 1", got)
 	}
 	_ = wrapped.Close()
-	if got := gaugeValue(t, reg, "booba_sessions_active"); got != 0 {
+	if got := gaugeValue(t, reg, "boba_sessions_active"); got != 0 {
 		t.Errorf("sessions_active after close = %v; want 0", got)
 	}
 }
@@ -58,12 +58,12 @@ func TestNewIsSafeToCallTwiceOnSameRegistry(t *testing.T) {
 
 	sess1 := mw1(&fakeSession{closed: make(chan struct{}), in: discardWriter{}})
 	sess2 := mw2(&fakeSession{closed: make(chan struct{}), in: discardWriter{}})
-	if got := gaugeValue(t, reg, "booba_sessions_active"); got != 2 {
+	if got := gaugeValue(t, reg, "boba_sessions_active"); got != 2 {
 		t.Errorf("sessions_active after wrapping two sessions = %v; want 2", got)
 	}
 	_ = sess1.Close()
 	_ = sess2.Close()
-	if got := gaugeValue(t, reg, "booba_sessions_active"); got != 0 {
+	if got := gaugeValue(t, reg, "boba_sessions_active"); got != 0 {
 		t.Errorf("sessions_active after closing both = %v; want 0", got)
 	}
 }
@@ -83,10 +83,10 @@ func TestBytesCountersIncrementOnReadAndWrite(t *testing.T) {
 	_, _ = wrapped.OutputReader().Read(buf)
 	_ = wrapped.Close()
 
-	if got := counterValue(t, reg, "booba_session_bytes_received_total"); got != 2 {
+	if got := counterValue(t, reg, "boba_session_bytes_received_total"); got != 2 {
 		t.Errorf("bytes_received = %v; want 2", got)
 	}
-	if got := counterValue(t, reg, "booba_session_bytes_sent_total"); got != 5 {
+	if got := counterValue(t, reg, "boba_session_bytes_sent_total"); got != 5 {
 		t.Errorf("bytes_sent = %v; want 5", got)
 	}
 }

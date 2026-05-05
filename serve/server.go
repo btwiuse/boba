@@ -26,7 +26,7 @@ import (
 	"github.com/quic-go/quic-go/http3"
 	"github.com/quic-go/webtransport-go"
 
-	"github.com/NimbleMarkets/go-booba/sip"
+	"github.com/btwiuse/boba/sip"
 )
 
 //go:embed static/*
@@ -625,7 +625,7 @@ func (s *Server) checkAuth(w http.ResponseWriter, r *http.Request) bool {
 	if validateBasicAuth(r, s.config.BasicUsername, s.config.BasicPassword) {
 		return true
 	}
-	w.Header().Set("WWW-Authenticate", `Basic realm="booba"`)
+	w.Header().Set("WWW-Authenticate", `Basic realm="boba"`)
 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
 	return false
 }
