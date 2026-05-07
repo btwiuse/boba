@@ -9,45 +9,6 @@ before:
     - go mod tidy
 
 builds:
-  - id: boba
-    main: ./cmd/boba
-    binary: boba
-    env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - darwin
-      - windows
-    goarch:
-      - amd64
-      - arm64
-
-  - id: boba-assets
-    main: ./cmd/boba-assets
-    binary: boba-assets
-    env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - darwin
-      - windows
-    goarch:
-      - amd64
-      - arm64
-
-  - id: boba-sip-client
-    main: ./cmd/boba-sip-client
-    binary: boba-sip-client
-    env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - darwin
-      - windows
-    goarch:
-      - amd64
-      - arm64
-
   - id: boba-wasm-build
     main: ./cmd/boba-wasm-build
     binary: boba-wasm-build
@@ -75,25 +36,6 @@ archives:
 
 checksum:
   name_template: checksums.txt
-
-notarize:
-  macos:
-    - enabled: '{{ isEnvSet "MACOS_SIGN_P12" }}'
-      ids:
-        - boba
-        - boba-assets
-        - boba-sip-client
-        - boba-wasm-build
-      sign:
-        certificate: "{{.Env.MACOS_SIGN_P12}}"
-        password: "{{.Env.MACOS_SIGN_PASSWORD}}"
-        entitlements: ./etc/entitlements.plist
-      notarize:
-        issuer_id: "{{.Env.MACOS_NOTARY_ISSUER_ID}}"
-        key_id: "{{.Env.MACOS_NOTARY_KEY_ID}}"
-        key: "{{.Env.MACOS_NOTARY_KEY}}"
-        wait: true
-        timeout: 20m
 
 changelog:
   sort: asc
