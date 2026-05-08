@@ -23,7 +23,7 @@ func readAll() (string, error) {
 	result := make(chan string, 1)
 	errCh := make(chan error, 1)
 
-	thenFunc := js.FuncOf(func(_ js.Value, args []js.Value) interface{} {
+	thenFunc := js.FuncOf(func(_ js.Value, args []js.Value) any {
 		if len(args) > 0 {
 			result <- args[0].String()
 		} else {
@@ -33,7 +33,7 @@ func readAll() (string, error) {
 	})
 	defer thenFunc.Release()
 
-	catchFunc := js.FuncOf(func(_ js.Value, args []js.Value) interface{} {
+	catchFunc := js.FuncOf(func(_ js.Value, args []js.Value) any {
 		if len(args) > 0 {
 			errCh <- errors.New(args[0].Call("toString").String())
 		} else {
@@ -67,13 +67,13 @@ func writeAll(text string) error {
 
 	errCh := make(chan error, 1)
 
-	thenFunc := js.FuncOf(func(_ js.Value, _ []js.Value) interface{} {
+	thenFunc := js.FuncOf(func(_ js.Value, _ []js.Value) any {
 		errCh <- nil
 		return nil
 	})
 	defer thenFunc.Release()
 
-	catchFunc := js.FuncOf(func(_ js.Value, args []js.Value) interface{} {
+	catchFunc := js.FuncOf(func(_ js.Value, args []js.Value) any {
 		if len(args) > 0 {
 			errCh <- errors.New(args[0].Call("toString").String())
 		} else {

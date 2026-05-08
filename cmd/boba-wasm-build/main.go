@@ -110,6 +110,15 @@ func run(buildArgs []string) error {
 			return fmt.Errorf("write stubs for %s: %w", p.modulePath, err)
 		}
 
+		// Bump the go version in the patched module's go.mod so modern
+		// language features (e.g. the `any` type alias) are accepted.
+		dstMod := filepath.Join(dstDir, "go.mod")
+		bumpCmd := exec.Command("go", "mod", "edit", "-modfile="+dstMod, "-go=1.18")
+		bumpCmd.Stderr = os.Stderr
+		if err := bumpCmd.Run(); err != nil {
+			return fmt.Errorf("bump go version for %s: %w", p.modulePath, err)
+		}
+
 		// Add replace directive to the temp go.mod
 		editCmd := exec.Command("go", "mod", "edit",
 			"-modfile="+tmpMod,
