@@ -110,6 +110,15 @@ func run(buildArgs []string) error {
 			return fmt.Errorf("write stubs for %s: %w", p.modulePath, err)
 		}
 
+		// Bump the go version in the patched module's go.mod so modern
+		// language features (e.g. the `any` type alias) are accepted.
+		dstMod := filepath.Join(dstDir, "go.mod")
+		bumpCmd := exec.Command("go", "mod", "edit", "-modfile="+dstMod, "-go=1.25")
+		bumpCmd.Stderr = os.Stderr
+		if err := bumpCmd.Run(); err != nil {
+			return fmt.Errorf("bump go version for %s: %w", p.modulePath, err)
+		}
+
 		// Add replace directive to the temp go.mod
 		editCmd := exec.Command("go", "mod", "edit",
 			"-modfile="+tmpMod,
@@ -148,15 +157,26 @@ func writeStubs(stubsFS embed.FS, stubDir, dstDir string) error {
 }
 
 func findModuleDir(path string) (string, error) {
-	out, err := exec.Command("go", "list", "-m", "-json", path).Output()
-	if err != nil {
-		return "", err
-	}
 	var info struct {
 		Dir string
 	}
+
+	// Fast path: module is already in the current module graph.
+	if out, err := exec.Command("go", "list", "-m", "-json", path).Output(); err == nil {
+		if json.Unmarshal(out, &info) == nil && info.Dir != "" {
+			return info.Dir, nil
+		}
+	}
+
+	// Slow path: module is not in go.mod yet (e.g. the workspace doesn't
+	// depend on it directly). Fetch the latest version into the module
+	// cache without modifying go.mod.
+	out, err := exec.Command("go", "mod", "download", "-json", path+"@latest").Output()
+	if err != nil {
+		return "", fmt.Errorf("fetch %s: %w", path, err)
+	}
 	if err := json.Unmarshal(out, &info); err != nil {
-		return "", err
+		return "", fmt.Errorf("parse download output for %s: %w", path, err)
 	}
 	if info.Dir == "" {
 		return "", fmt.Errorf("module %s not in module cache", path)
