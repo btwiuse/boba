@@ -148,15 +148,26 @@ func writeStubs(stubsFS embed.FS, stubDir, dstDir string) error {
 }
 
 func findModuleDir(path string) (string, error) {
-	out, err := exec.Command("go", "list", "-m", "-json", path).Output()
-	if err != nil {
-		return "", err
-	}
 	var info struct {
 		Dir string
 	}
+
+	// Fast path: module is already in the current module graph.
+	if out, err := exec.Command("go", "list", "-m", "-json", path).Output(); err == nil {
+		if json.Unmarshal(out, &info) == nil && info.Dir != "" {
+			return info.Dir, nil
+		}
+	}
+
+	// Slow path: module is not in go.mod yet (e.g. the workspace doesn't
+	// depend on it directly). Fetch the latest version into the module
+	// cache without modifying go.mod.
+	out, err := exec.Command("go", "mod", "download", "-json", path+"@latest").Output()
+	if err != nil {
+		return "", fmt.Errorf("fetch %s: %w", path, err)
+	}
 	if err := json.Unmarshal(out, &info); err != nil {
-		return "", err
+		return "", fmt.Errorf("parse download output for %s: %w", path, err)
 	}
 	if info.Dir == "" {
 		return "", fmt.Errorf("module %s not in module cache", path)
