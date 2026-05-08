@@ -5,7 +5,10 @@ package clipboard
 import (
 	"errors"
 	"syscall/js"
+	"time"
 )
+
+const clipboardTimeout = 10 * time.Second
 
 func readAll() (string, error) {
 	nav := js.Global().Get("navigator")
@@ -47,6 +50,8 @@ func readAll() (string, error) {
 		return text, nil
 	case err := <-errCh:
 		return "", err
+	case <-time.After(clipboardTimeout):
+		return "", errors.New("clipboard: readText timed out")
 	}
 }
 
@@ -80,5 +85,10 @@ func writeAll(text string) error {
 
 	clip.Call("writeText", text).Call("then", thenFunc).Call("catch", catchFunc)
 
-	return <-errCh
+	select {
+	case err := <-errCh:
+		return err
+	case <-time.After(clipboardTimeout):
+		return errors.New("clipboard: writeText timed out")
+	}
 }
